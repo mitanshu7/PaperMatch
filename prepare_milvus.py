@@ -10,8 +10,8 @@ from glob import glob
 # https://huggingface.co/docs/huggingface_hub/v0.24.6/en/package_reference/file_download#huggingface_hub.snapshot_download
 
 # Setup transaction details
-# repo_id = "bluuebunny/arxiv_abstract_embedding_mxbai_large_v1_milvus"
-repo_id = "bluuebunny/tmp"
+repo_id = "bluuebunny/arxiv_abstract_embedding_mxbai_large_v1_milvus"
+# repo_id = "bluuebunny/tmp"
 repo_type = "dataset"
 local_dir = "volumes/milvus"
 allow_patterns = "*.parquet"
