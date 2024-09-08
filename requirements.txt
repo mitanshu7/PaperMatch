@@ -1,3 +1,6 @@
 pymilvus
 gradio
 huggingface_hub
+arxiv
+dotenv
+mixedbread-ai

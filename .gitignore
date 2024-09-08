@@ -1,3 +1,5 @@
 embedEtcd.yaml
 user.yaml
 volumes/
+*tmp*
+.env
