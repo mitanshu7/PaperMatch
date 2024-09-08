@@ -173,7 +173,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     gr.Markdown("# PaperMatch: Find Related Research Papers")
     gr.Markdown("## Simply enter an ArXiv ID or paste an abstract to discover similar papers based on semantic similarity.")
     gr.Markdown("### ArXiv Search Database last updated: Aug-2024")
-    gr.Markdown("#### *** Please refresh page after each result. I am still fixing that. *** ")
+    gr.Markdown("#### *** Please refresh page after each result to avoid eternal buffering. It's a known bug. *** ")
     
     # Dropdown to select input type
     input_type = gr.Dropdown(
@@ -189,7 +189,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     examples = gr.Examples(examples, id_or_text_input)
     
     # Slider
-    slider_input = gr.Slider(minimum=1, maximum=50, value=5, step=1, label="Top-k results")
+    slider_input = gr.Slider(minimum=1, maximum=25, value=5, step=1, label="Top-k results")
 
     # Button to trigger the process
     submit_btn = gr.Button("Submit")
