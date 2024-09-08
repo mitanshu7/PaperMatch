@@ -96,7 +96,7 @@ def fetch_all_details(search_results):
 def make_clickable(val):
         # Regex to detect URLs in the value
         if re.match(r'^https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', val):
-            return f'<a href="{val}" target="_blank" style="color: #007BFF;">{val}</a>'
+            return f"[{val}]({val})"
         return val
 
 ################################################################################
@@ -107,11 +107,9 @@ def dict_list_to_pretty_table(data):
     
     df = pd.DataFrame(data)
 
-    # df['Link'] = df['Link'].apply(make_clickable)
+    df['Link'] = df['Link'].apply(make_clickable)
 
     return df
-    
-    
 
 ################################################################################
 
@@ -152,7 +150,7 @@ def predict(input_type, input_text, limit):
 contact_text = """
 # Contact Information
 
-👤  Mitanshu Sukhwani 
+👤  [Mitanshu Sukhwani](https://www.linkedin.com/in/mitanshusukhwani/)
 
 ✉️  mitanshu.sukhwani@gmail.com
 
@@ -197,7 +195,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     submit_btn = gr.Button("Submit")
     
     # Output: HTML table for list of dictionaries
-    output = gr.DataFrame(wrap=True)
+    output = gr.DataFrame(wrap=True, datatype=["str", "str", "str", "markdown", "number"], label="Search Results", show_label=True)
 
     # Required Attribution
     gr.Markdown(contact_text)
