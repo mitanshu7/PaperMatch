@@ -5,6 +5,7 @@ import numpy as np
 import arxiv
 from mixedbread_ai.client import MixedbreadAI
 from dotenv import dotenv_values
+import re
 
 ################################################################################
 
@@ -53,30 +54,49 @@ def fetch_all_details(search_results):
 
 ################################################################################
 
+def make_clickable(val):
+        # Regex to detect URLs in the value
+        if re.match(r'^https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', val):
+            return f'<a href="{val}" target="_blank" style="color: #007BFF;">{val}</a>'
+        return val
+
+################################################################################
+
 # Function to convert list of dictionaries to a styled HTML table
 def dict_list_to_pretty_table(data):
     html = """
     <style>
     table {
-        font-family: Arial, sans-serif;
+        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         border-collapse: collapse;
         width: 100%;
         margin: 20px 0;
+        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     th, td {
         border: 1px solid #dddddd;
         text-align: left;
-        padding: 8px;
-    }
-    tr:nth-child(even) {
-        background-color: #f2f2f2;
+        padding: 10px;
+        font-size: 14px;
     }
     th {
-        background-color: #4CAF50;
+        background-color: #6EC1E4;
         color: white;
+        text-transform: uppercase;
+        letter-spacing: 1px;
+    }
+    tr:nth-child(even) {
+        background-color: #f9f9f9;
+    }
+    tr:nth-child(odd) {
+        background-color: #ffffff;
     }
     tr:hover {
-        background-color: #ddd;
+        background-color: #d1ecf1;
+        cursor: pointer;
+    }
+    td {
+        color: #333;
     }
     </style>
     <table>
@@ -92,7 +112,8 @@ def dict_list_to_pretty_table(data):
     for entry in data:
         html += "<tr>"
         for value in entry.values():
-            html += f"<td>{value}</td>"
+            clickable_value = make_clickable(str(value))
+            html += f"<td>{clickable_value}</td>"
         html += "</tr>"
     
     html += "</table>"
