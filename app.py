@@ -7,6 +7,7 @@ from mixedbread_ai.client import MixedbreadAI
 from dotenv import dotenv_values
 import re
 from functools import cache
+import pandas as pd
 
 ################################################################################
 # Configuration
@@ -103,69 +104,14 @@ def make_clickable(val):
 # Function to convert list of dictionaries to a styled HTML table
 
 def dict_list_to_pretty_table(data):
-    html = """
-    <style>
-    .table-container {
-        overflow-x: auto;
-        width: 100%;
-        max-width: 100%;
-        margin: 20px 0;
-    }
-    table {
-        font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-        border-collapse: collapse;
-        width: 100%;
-        box-shadow: 0 4px 8px rgba(0,0,0,0.1);
-    }
-    th, td {
-        border: 1px solid #dddddd;
-        text-align: left;
-        padding: 10px;
-        font-size: 14px;
-    }
-    th {
-        background-color: #6366F1;
-        color: white !important;
-        text-transform: uppercase;
-        letter-spacing: 1px;
-    }
-    tr:nth-child(even) {
-        background-color: #f9f9f9;
-    }
-    tr:nth-child(odd) {
-        background-color: #ffffff;
-    }
-    tr:hover {
-        background-color: #e0e7ff;
-        cursor: pointer;
-    }
-    td {
-        color: #333;
-    }
-    a {
-        text-decoration: none;
-    }
-    </style>
-    <div class="table-container">
-    <table>
-    """
     
-    # Create table header
-    html += "<tr>"
-    for key in data[0].keys():
-        html += f"<th>{key}</th>"
-    html += "</tr>"
+    df = pd.DataFrame(data)
+
+    # df['Link'] = df['Link'].apply(make_clickable)
+
+    return df
     
-    # Add data rows
-    for entry in data:
-        html += "<tr>"
-        for value in entry.values():
-            clickable_value = make_clickable(str(value))
-            html += f"<td>{clickable_value}</td>"
-        html += "</tr>"
     
-    html += "</table></div>"
-    return html
 
 ################################################################################
 
@@ -251,7 +197,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     submit_btn = gr.Button("Submit")
     
     # Output: HTML table for list of dictionaries
-    output = gr.HTML(label="Search results")
+    output = gr.DataFrame(wrap=True)
 
     # Required Attribution
     gr.Markdown(contact_text)
