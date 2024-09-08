@@ -66,11 +66,16 @@ def make_clickable(val):
 def dict_list_to_pretty_table(data):
     html = """
     <style>
+    .table-container {
+        overflow-x: auto;
+        width: 100%;
+        max-width: 100%;
+        margin: 20px 0;
+    }
     table {
         font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
         border-collapse: collapse;
         width: 100%;
-        margin: 20px 0;
         box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     th, td {
@@ -98,7 +103,11 @@ def dict_list_to_pretty_table(data):
     td {
         color: #333;
     }
+    a {
+        text-decoration: none;
+    }
     </style>
+    <div class="table-container">
     <table>
     """
     
@@ -116,7 +125,7 @@ def dict_list_to_pretty_table(data):
             html += f"<td>{clickable_value}</td>"
         html += "</tr>"
     
-    html += "</table>"
+    html += "</table></div>"
     return html
 
 ################################################################################
@@ -196,6 +205,12 @@ contact_text = """
 🐙  [mitanshu7](https://github.com/mitanshu7)
 """
 
+examples = [
+    ["1706.03762"],
+    ["The promise of quantum computers is that certain computational tasks might be executed exponentially faster on a quantum processor than on a classical processor. A fundamental challenge is to build a high-fidelity processor capable of running quantum algorithms in an exponentially large computational space. Here we report the use of a processor with programmable superconducting qubits to create quantum states on 53 qubits, corresponding to a computational state-space of dimension 2^53 (about 10^16). Measurements from repeated experiments sample the resulting probability distribution, which we verify using classical simulations. Our Sycamore processor takes about 200 seconds to sample one instance of a quantum circuit a million times—our benchmarks currently indicate that the equivalent task for a state-of-the-art classical supercomputer would take approximately 10,000 years. This dramatic increase in speed compared to all known classical algorithms is an experimental realization of quantum supremacy for this specific computational task, heralding a much-anticipated computing paradigm."],
+    ["Information theory with applications in marine biology"]
+]
+
 ################################################################################
 # Create the Gradio interface
 with gr.Blocks() as demo:
@@ -214,6 +229,9 @@ with gr.Blocks() as demo:
     
     # Input: Textbox for user input (alphanumeric ID, text, or text with numbers)
     id_or_text_input = gr.Textbox(label="Enter Input")
+
+    # Examples
+    examples = gr.Examples(examples, id_or_text_input)
     
     # Slider
     slider_input = gr.Slider(minimum=0, maximum=50, value=5, label="Top-k results")
@@ -222,7 +240,7 @@ with gr.Blocks() as demo:
     submit_btn = gr.Button("Submit")
     
     # Output: HTML table for list of dictionaries
-    output = gr.HTML(label="Pretty Output")
+    output = gr.HTML(label="Search results")
 
     # Required Attribution
     gr.Markdown(contact_text)
