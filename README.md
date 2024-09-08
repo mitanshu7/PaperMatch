@@ -1,6 +1,3 @@
-Here's a README file template for your project:
-
----
 
 # arXiv Search with Embeddings and Milvus
 
