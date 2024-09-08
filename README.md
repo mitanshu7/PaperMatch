@@ -85,6 +85,27 @@ Here is a basic example of how to use the search feature:
 2. **Search by ID:**
    - Input an arXiv ID directly.
    - Retrieve and display the corresponding paper details.
+  
+## Run at startup (systemd):
+1. create a file `~/.config/systemd/user/search_arxiv.service` using:
+`nano ~/.config/systemd/user/search_arxiv.service`
+with the following contents (assuming user=milvus, and using anaconda package manager with env name search_arxiv):
+```bash
+[Unit]
+Description=Search ArXiv  Web App
+After=network.target
+
+[Service]
+WorkingDirectory=/home/milvus/search_arxiv/
+ExecStart=/bin/bash -c "source /home/milvus/miniforge3/bin/activate search_arxiv && python app.py"
+Restart=always
+
+[Install]
+WantedBy=default.target
+```
+2. Issue `systemctl --user daemon-reload` to reload systemd.
+3. issue `systemctl --user start search_arxiv.service` to start the app.
+4. Issue `systemctl --user enable  search_arxiv.service` to enable app at start up.
 
 ## Contributing
 
