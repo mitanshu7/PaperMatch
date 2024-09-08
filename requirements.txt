@@ -2,5 +2,5 @@ pymilvus
 gradio
 huggingface_hub
 arxiv
-dotenv
+python-dotenv
 mixedbread-ai
