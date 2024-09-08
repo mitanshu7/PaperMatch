@@ -229,6 +229,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     gr.Markdown("# PaperMatch: Find Related Research Papers")
     gr.Markdown("## Simply enter an ArXiv ID or paste an abstract to discover similar papers based on semantic similarity.")
     gr.Markdown("### ArXiv Search Database last updated: Aug-2024")
+    gr.Markdown("#### *** Please refresh page after each result. I am still fixing that. *** ")
     
     # Dropdown to select input type
     input_type = gr.Dropdown(
