@@ -156,7 +156,7 @@ def search(vector, limit):
 # Function to handle the UI logic
 def predict(input_type, input_text, limit):
 
-    if input_type == "Arxiv ID":
+    if input_type == "ArXiv ID":
 
         arxiv_json = fetch_arxiv_by_id(input_text)
 
@@ -186,33 +186,47 @@ def predict(input_type, input_text, limit):
         return "Please provide either an ArXiv ID or an abstract."
             
 
+contact_text = """
+# Contact Information
+
+👤  Mitanshu Sukhwani 
+
+✉️  mitanshu.sukhwani@gmail.com
+
+🐙  [mitanshu7](https://github.com/mitanshu7)
+"""
 
 ################################################################################
 # Create the Gradio interface
 with gr.Blocks() as demo:
 
-    # Title or header
-    gr.Markdown("# Input Type Selector App")
+    # Title and Description
+    gr.Markdown("# PaperMatch: Find Related Research Papers")
+    gr.Markdown("## Simply enter an ArXiv ID or paste an abstract to discover similar papers based on semantic similarity.")
+    gr.Markdown("### ArXiv Search Database last updated: Aug-2024")
     
     # Dropdown to select input type
     input_type = gr.Dropdown(
-        choices=["Arxiv ID", "Abstract or Paper Description"],
+        choices=["ArXiv ID", "Abstract or Paper Description"],
         label="Select Input Type",
-        value="Arxiv ID"
+        value="ArXiv ID"
     )
     
     # Input: Textbox for user input (alphanumeric ID, text, or text with numbers)
     id_or_text_input = gr.Textbox(label="Enter Input")
     
     # Slider
-    slider_input = gr.Slider(minimum=0, maximum=50, value=5, label="Slider")
+    slider_input = gr.Slider(minimum=0, maximum=50, value=5, label="Top-k results")
 
     # Button to trigger the process
     submit_btn = gr.Button("Submit")
     
     # Output: HTML table for list of dictionaries
     output = gr.HTML(label="Pretty Output")
-    
+
+    # Required Attribution
+    gr.Markdown(contact_text)
+    gr.Markdown("Thank you to ArXiv for use of its open access interoperability.")
 
     # Link button click to the function
     submit_btn.click(predict, [input_type, id_or_text_input, slider_input], output)
