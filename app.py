@@ -151,7 +151,7 @@ def predict(input_type, input_text, limit):
 
         return df
     
-    elif input_type == "Abstract or Paper Description":
+    elif input_type == "Abstract or Description":
 
         abstract_vector = embed(input_text)
 
@@ -178,11 +178,9 @@ contact_text = """
 """
 
 examples = [
-    ["1706.03762"],
-    ["2401.07215"],
-    ["Deep learning models assisting in aaa games"],
-    ["Game theory applications in marine biology"],
-    ["The modern coffee market aims to provide products which are both consistent and have desirable flavour characteristics. Espresso, one of the most widely consumed coffee beverage formats, is also the most susceptible to variation in quality. Yet, the origin of this inconsistency has traditionally, and incorrectly, been attributed to human variations. This study's mathematical model, paired with experiment, has elucidated that the grinder and water pressure play pivotal roles in achieving beverage reproducibility. We suggest novel brewing protocols that not only reduce beverage variation but also decrease the mass of coffee used per espresso by up to 25%. If widely implemented, this protocol will have significant economic impact and create a more sustainable coffee-consuming future."]
+    ["ArXiv ID", "2401.07215"],
+    ["Abstract or Description", "Game theory applications in marine biology"],
+    ["Abstract or Description", "The modern coffee market aims to provide products which are both consistent and have desirable flavour characteristics. Espresso, one of the most widely consumed coffee beverage formats, is also the most susceptible to variation in quality. Yet, the origin of this inconsistency has traditionally, and incorrectly, been attributed to human variations. This study's mathematical model, paired with experiment, has elucidated that the grinder and water pressure play pivotal roles in achieving beverage reproducibility. We suggest novel brewing protocols that not only reduce beverage variation but also decrease the mass of coffee used per espresso by up to 25%. If widely implemented, this protocol will have significant economic impact and create a more sustainable coffee-consuming future."]
 ]
 
 ################################################################################
@@ -193,20 +191,19 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     gr.Markdown("# PaperMatch: Find Related Research Papers")
     gr.Markdown("## Simply enter an [ArXiv ID](https://info.arxiv.org/help/arxiv_identifier.html) or paste an abstract to discover similar papers based on semantic similarity.")
     gr.Markdown("### ArXiv Search Database last updated: Aug-2024")
-    gr.Markdown("#### *** Please refresh page after each result to avoid eternal buffering. It's a known bug. *** ")
     
     # Dropdown to select input type
     input_type = gr.Dropdown(
-        choices=["ArXiv ID", "Abstract or Paper Description"],
-        label="Select Input Type",
+        choices=["ArXiv ID", "Abstract or Description"],
+        label="Input Type",
         value="ArXiv ID"
     )
     
     # Input: Textbox for user input (alphanumeric ID, text, or text with numbers)
-    id_or_text_input = gr.Textbox(label="Enter Input")
+    id_or_text_input = gr.Textbox(label="Input Query")
 
     # Examples
-    examples = gr.Examples(examples, id_or_text_input)
+    examples = gr.Examples(examples, [input_type, id_or_text_input])
     
     # Slider
     slider_input = gr.Slider(minimum=1, maximum=25, value=5, step=1, label="Top-k results")
