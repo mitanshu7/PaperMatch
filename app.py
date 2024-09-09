@@ -12,8 +12,11 @@ import pandas as pd
 ################################################################################
 # Configuration
 
-# Define client
-client = MilvusClient("http://localhost:19530")
+# Define Milvus client
+milvus_client = MilvusClient("http://localhost:19530")
+
+# Construct the Arxiv API client.
+arxiv_client = arxiv.Client(page_size=1, delay_seconds=1)
 
 # Import secrets
 config = dotenv_values(".env")
@@ -30,7 +33,7 @@ def fetch_arxiv_by_id(arxiv_id):
 
     search = arxiv.Search(id_list=[arxiv_id])
 
-    paper = next(search.results(), None)
+    paper = next(arxiv_client.results(search), None)
 
     if paper:
         return {
@@ -63,7 +66,7 @@ def embed(text):
 
 def search(vector, limit):
 
-    result = client.search(
+    result = milvus_client.search(
         collection_name="arxiv_abstracts", # Replace with the actual name of your collection
         # Replace with your query vector
         data=[vector],
@@ -103,7 +106,7 @@ def make_clickable(val):
 
 # Function to convert list of dictionaries to a styled HTML table
 
-def dict_list_to_pretty_table(data):
+def parse_output(data):
     
     df = pd.DataFrame(data)
 
@@ -117,19 +120,36 @@ def dict_list_to_pretty_table(data):
 @cache
 def predict(input_type, input_text, limit):
 
+    # When input is arxiv id
     if input_type == "ArXiv ID":
 
-        arxiv_json = fetch_arxiv_by_id(input_text)
+        # Search if id is already in database
+        id_in_db = milvus_client.get(collection_name="arxiv_abstracts",ids=[input_text])
 
-        abstract_vector = embed(arxiv_json['Abstract'])
+        # If the id is already in database
+        if bool(id_in_db):
 
+            # Get the vector
+            abstract_vector = id_in_db[0]['vector']
+
+        else:
+
+            # Search arxiv for paper details
+            arxiv_json = fetch_arxiv_by_id(input_text)
+
+            # Embed abstract
+            abstract_vector = embed(arxiv_json['Abstract'])
+
+        # Search database
         search_results = search(abstract_vector, limit)
 
+        # Gather details about the found papers
         all_details = fetch_all_details(search_results)
         
-        html = dict_list_to_pretty_table(all_details)
 
-        return html
+        df = parse_output(all_details)
+
+        return df
     
     elif input_type == "Abstract or Paper Description":
 
@@ -139,9 +159,9 @@ def predict(input_type, input_text, limit):
 
         all_details = fetch_all_details(search_results)
         
-        html = dict_list_to_pretty_table(all_details)
+        df = parse_output(all_details)
 
-        return html
+        return df
 
     else:
         return "Please provide either an ArXiv ID or an abstract."
@@ -171,7 +191,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
 
     # Title and Description
     gr.Markdown("# PaperMatch: Find Related Research Papers")
-    gr.Markdown("## Simply enter an ArXiv ID or paste an abstract to discover similar papers based on semantic similarity.")
+    gr.Markdown("## Simply enter an [ArXiv ID](https://info.arxiv.org/help/arxiv_identifier.html) or paste an abstract to discover similar papers based on semantic similarity.")
     gr.Markdown("### ArXiv Search Database last updated: Aug-2024")
     gr.Markdown("#### *** Please refresh page after each result to avoid eternal buffering. It's a known bug. *** ")
     
