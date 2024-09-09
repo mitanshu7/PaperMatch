@@ -40,7 +40,7 @@ def fetch_arxiv_by_id(arxiv_id):
             "Title": paper.title,
             "Authors": ", ".join([str(author) for author in paper.authors]),
             "Abstract": paper.summary,
-            "Link": paper.pdf_url
+            "URL": paper.pdf_url
         }
     return "No paper found."
 
@@ -88,7 +88,7 @@ def fetch_all_details(search_results):
 
         paper_details = fetch_arxiv_by_id(search_result['id'])
 
-        paper_details['similarity'] = search_result['distance']
+        paper_details['Similarity Score'] = np.round(search_result['distance']*100, 2)
 
         all_details.append(paper_details)
 
@@ -110,7 +110,7 @@ def parse_output(data):
     
     df = pd.DataFrame(data)
 
-    df['Link'] = df['Link'].apply(make_clickable)
+    df['URL'] = df['URL'].apply(make_clickable)
 
     return df
 
@@ -187,39 +187,55 @@ examples = [
 # Create the Gradio interface
 with gr.Blocks(theme=gr.themes.Soft()) as demo:
 
-    # Title and Description
-    gr.Markdown("# PaperMatch: Find Related Research Papers")
-    gr.Markdown("## Simply enter an [ArXiv ID](https://info.arxiv.org/help/arxiv_identifier.html) or paste an abstract to discover similar papers based on semantic similarity.")
-    gr.Markdown("### ArXiv Search Database last updated: Aug-2024")
+    # Title and description
+    gr.Markdown("# PaperMatch: Discover Related Research Papers")
+    gr.Markdown("## Enter either an [ArXiv ID](https://info.arxiv.org/help/arxiv_identifier.html) or paste an abstract to explore papers based on semantic similarity.")
+    gr.Markdown("### _ArXiv Database last updated: August 2024_")
     
-    # Dropdown to select input type
-    input_type = gr.Dropdown(
-        choices=["ArXiv ID", "Abstract or Description"],
-        label="Input Type",
-        value="ArXiv ID"
+    # Input Section
+    with gr.Row():
+        input_type = gr.Dropdown(
+            choices=["ArXiv ID", "Abstract or Description"],
+            label="Input Type",
+            value="ArXiv ID",
+            interactive=True,
+        )
+        id_or_text_input = gr.Textbox(
+            label="Enter ArXiv ID or Abstract", 
+            placeholder="e.g., 1706.03762 or an abstract...",
+        )
+    
+    # Example inputs
+    gr.Examples(
+        examples=examples, 
+        inputs=[input_type, id_or_text_input],
+        label="Example Queries"
     )
-    
-    # Input: Textbox for user input (alphanumeric ID, text, or text with numbers)
-    id_or_text_input = gr.Textbox(label="Input Query")
 
-    # Examples
-    examples = gr.Examples(examples, [input_type, id_or_text_input])
-    
-    # Slider
-    slider_input = gr.Slider(minimum=1, maximum=25, value=5, step=1, label="Top-k results")
+    # Slider for results count
+    slider_input = gr.Slider(
+        minimum=1, maximum=25, value=5, step=1, 
+        label="Number of Similar Papers"
+    )
 
-    # Button to trigger the process
-    submit_btn = gr.Button("Submit")
+    # Submission Button
+    submit_btn = gr.Button("Find Papers")
     
-    # Output: HTML table for list of dictionaries
-    output = gr.DataFrame(wrap=True, datatype=["str", "str", "str", "markdown", "number"], label="Search Results", show_label=True)
+    # Output section
+    output = gr.DataFrame(
+        wrap=True, datatype=["str", "str", "str", "markdown", "number"], 
+        label="Related Papers", 
+        show_label=True,
+        headers=["Title", "Authors", "Abstract", "URL", "Similarity Score"]
+    )
 
-    # Required Attribution
+    # Attribution
     gr.Markdown(contact_text)
-    gr.Markdown("Thank you to ArXiv for use of its open access interoperability.")
+    gr.Markdown("_Thanks to [ArXiv](https://arxiv.org) for their open access interoperability._")
 
-    # Link button click to the function
+    # Link button click to the prediction function
     submit_btn.click(predict, [input_type, id_or_text_input, slider_input], output)
+
 
 ################################################################################
 
