@@ -1,5 +1,4 @@
-
-# arXiv Search with Embeddings and Milvus
+# PaperMatch: arXiv Search with Embeddings and Milvus
 
 This project allows users to search for arXiv papers either by ID or abstract. The search functionality is powered by a machine learning embedding model and Milvus, a vector database. Gradio is used to create a user-friendly web interface for interaction.
 
