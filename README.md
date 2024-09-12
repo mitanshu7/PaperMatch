@@ -2,7 +2,9 @@
 
 This project allows users to search for arXiv papers either by ID or abstract. The search functionality is powered by a machine learning embedding model and Milvus, a vector database. Gradio is used to create a user-friendly web interface for interaction. 
 
-See full explanation at the following blog post: https://mitanshu.tech/posts/papermatch/
+See implemented demo at [papermatch.mitanshu.tech](https://papermatch.mitanshu.tech)
+
+See full explanation at the corresponding blog post: [mitanshu.tech/posts/papermatch](https://mitanshu.tech/posts/papermatch/)
 
 ## Features
 
