@@ -107,6 +107,12 @@ WantedBy=default.target
 3. issue `systemctl --user start search_arxiv.service` to start the app.
 4. Issue `systemctl --user enable  search_arxiv.service` to enable app at start up.
 
+## To Do:
+- [ ] Automate embedding of new metadata each month.
+- [ ] Learn incremental databse update.
+- [ ] Automate setting up of the app.
+- [ ] Find more sources to integrate.
+
 ## Contributing
 
 Feel free to contribute to the project by submitting issues, pull requests, or suggestions. 
