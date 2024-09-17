@@ -25,6 +25,13 @@ snapshot_download(repo_id=repo_id, repo_type=repo_type, local_dir=local_dir, all
 # Define client
 client = MilvusClient("http://localhost:19530")
 
+# Drop any of the pre-existing collections
+# Need to drop it because otherwise milvus does not check for (and keeps)
+# duplicate records
+client.drop_collection(
+    collection_name="arxiv_abstracts"
+)
+
 # Dataset schema
 schema = MilvusClient.create_schema(
     auto_id=False,
@@ -70,6 +77,7 @@ job_response = requests.post(job_url, headers=headers, json=job_url_data)
 job_json = job_response.json()
 
 # Print the response
+print("Job details:")
 print(job_response.status_code)
 print(job_json)
 
@@ -88,7 +96,7 @@ while True:
     print('*'*80)
 
     # Sleep a bit
-    seconds = 5
+    seconds = 10
     print(f"Sleeping for {seconds} seconds")
     sleep(seconds)
 
@@ -136,6 +144,8 @@ index_params.add_index(
     index_name="vector_index",
 )
 
+print("Creating Index file.")
+
 # Create an index file
 res = client.create_index(
     collection_name="arxiv_abstracts",
@@ -145,12 +155,16 @@ res = client.create_index(
 
 print(res)
 
+print("Listing indexes.")
+
 # List indexes
 res = client.list_indexes(
     collection_name="arxiv_abstracts"
 )
 
 print(res)
+
+print("Describing Index.")
 
 # Describe index
 res = client.describe_index(
@@ -163,6 +177,9 @@ print(res)
 ################################################################################
 
 # Load the collection
+
+print("Loading Collection")
+
 client.load_collection(
     collection_name="arxiv_abstracts",
     replica_number=1 # Number of replicas to create on query nodes. 
@@ -172,6 +189,7 @@ res = client.get_load_state(
     collection_name="arxiv_abstracts"
 )
 
+print("Collection load state:")
 print(res)
 
 
