@@ -179,8 +179,7 @@ contact_text = """
 
 examples = [
     ["ArXiv ID", "2401.07215"],
-    ["Abstract or Description", "Game theory applications in marine biology"],
-    ["Abstract or Description", "The modern coffee market aims to provide products which are both consistent and have desirable flavour characteristics. Espresso, one of the most widely consumed coffee beverage formats, is also the most susceptible to variation in quality. Yet, the origin of this inconsistency has traditionally, and incorrectly, been attributed to human variations. This study's mathematical model, paired with experiment, has elucidated that the grinder and water pressure play pivotal roles in achieving beverage reproducibility. We suggest novel brewing protocols that not only reduce beverage variation but also decrease the mass of coffee used per espresso by up to 25%. If widely implemented, this protocol will have significant economic impact and create a more sustainable coffee-consuming future."]
+    ["Abstract or Description", "Game theory applications in marine biology"]
 ]
 
 ################################################################################
