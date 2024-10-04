@@ -16,7 +16,7 @@ import pandas as pd
 milvus_client = MilvusClient("http://localhost:19530")
 
 # Construct the Arxiv API client.
-arxiv_client = arxiv.Client(page_size=1, delay_seconds=0)
+arxiv_client = arxiv.Client(page_size=1, delay_seconds=1)
 
 # Import secrets
 config = dotenv_values(".env")
