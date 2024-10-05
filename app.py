@@ -31,18 +31,26 @@ mxbai = MixedbreadAI(api_key=mxbai_api_key)
 @cache
 def fetch_arxiv_by_id(arxiv_id):
 
+    # Search for the paper using the Arxiv API
     search = arxiv.Search(id_list=[arxiv_id])
 
-    paper = next(arxiv_client.results(search), None)
+    try:
 
-    if paper:
+        # Fetch the paper metadata using the Arxiv API
+        paper = next(arxiv_client.results(search), None)
+
+        # Extract the relevant metadata from the paper object
         return {
-            "Title": paper.title,
-            "Authors": ", ".join([str(author) for author in paper.authors]),
-            "Abstract": paper.summary,
-            "URL": paper.pdf_url
-        }
-    return "No paper found."
+                "Title": paper.title,
+                "Authors": ", ".join([str(author) for author in paper.authors]),
+                "Abstract": paper.summary,
+                "URL": paper.pdf_url
+            }
+
+    except Exception as e:
+
+        # Raise an exception if the request was not successful
+        raise gr.Error( f"Failed to fetch metadata for ID '{arxiv_id}'. Error: {e}")
 
 ################################################################################
 # Function to embed text
@@ -95,26 +103,6 @@ def fetch_all_details(search_results):
     return all_details
 
 ################################################################################
-@cache
-def make_clickable(val):
-        # Regex to detect URLs in the value
-        if re.match(r'^https?://(?:[-\w.]|(?:%[\da-fA-F]{2}))+', val):
-            return f"[{val}]({val})"
-        return val
-
-################################################################################
-
-# Function to convert list of dictionaries to a styled HTML table
-
-def parse_output(data):
-    
-    df = pd.DataFrame(data)
-
-    df['URL'] = df['URL'].apply(make_clickable)
-
-    return df
-
-################################################################################
 
 # Function to handle the UI logic
 @cache
@@ -122,6 +110,10 @@ def predict(input_type, input_text, limit):
 
     # When input is arxiv id
     if input_type == "ArXiv ID":
+
+        # Check if input is empty
+        if input_text == "":
+            raise gr.Error("Please enter a ArXiv ID", 10)
 
         # Search if id is already in database
         id_in_db = milvus_client.get(collection_name="arxiv_abstracts",ids=[input_text])
@@ -147,11 +139,15 @@ def predict(input_type, input_text, limit):
         all_details = fetch_all_details(search_results)
         
 
-        df = parse_output(all_details)
+        df = pd.DataFrame(all_details)
 
-        return df
+        return df.to_html(render_links=True, index=False)
     
     elif input_type == "Abstract or Description":
+
+        # Check if input is empty
+        if input_text == "":
+            raise gr.Error("Please enter an abstract or description", 10)
 
         abstract_vector = embed(input_text)
 
@@ -159,9 +155,9 @@ def predict(input_type, input_text, limit):
 
         all_details = fetch_all_details(search_results)
         
-        df = parse_output(all_details)
+        df = pd.DataFrame(all_details)
 
-        return df
+        return df.to_html(render_links=True, index=False)
 
     else:
         return "Please provide either an ArXiv ID or an abstract."
@@ -221,12 +217,7 @@ with gr.Blocks(theme=gr.themes.Soft()) as demo:
     submit_btn = gr.Button("Find Papers")
     
     # Output section
-    output = gr.DataFrame(
-        wrap=True, datatype=["str", "str", "str", "markdown", "number"], 
-        label="Related Papers", 
-        show_label=True,
-        headers=["Title", "Authors", "Abstract", "URL", "Similarity Score"]
-    )
+    output = gr.HTML(label="Related Papers")
 
     # Attribution
     gr.Markdown(contact_text)
