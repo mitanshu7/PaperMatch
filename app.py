@@ -79,7 +79,8 @@ def search(vector, limit):
         # Replace with your query vector
         data=[vector],
         limit=limit, # Max. number of search results to return
-        search_params={"metric_type": "COSINE"} # Search parameters
+        search_params={"metric_type": "COSINE"}, # Search parameters
+        output_fields=["$meta"] # Output fields to return
     )
 
     # returns a list of dictionaries with id and distance as keys
@@ -94,13 +95,19 @@ def fetch_all_details(search_results):
 
     for search_result in search_results:
 
-        paper_details = fetch_arxiv_by_id(search_result['id'])
+        paper_details = search_result['entity']
 
         paper_details['Similarity Score'] = np.round(search_result['distance']*100, 2)
 
         all_details.append(paper_details)
 
-    return all_details
+    # Convert to dataframe
+    df = pd.DataFrame(all_details)
+
+    # Convert to HTML table and return
+    html = df.to_html(render_links=True, index=False)
+
+    return html
 
 ################################################################################
 
@@ -137,11 +144,8 @@ def predict(input_type, input_text, limit):
 
         # Gather details about the found papers
         all_details = fetch_all_details(search_results)
-        
 
-        df = pd.DataFrame(all_details)
-
-        return df.to_html(render_links=True, index=False)
+        return all_details
     
     elif input_type == "Abstract or Description":
 
@@ -155,9 +159,7 @@ def predict(input_type, input_text, limit):
 
         all_details = fetch_all_details(search_results)
         
-        df = pd.DataFrame(all_details)
-
-        return df.to_html(render_links=True, index=False)
+        return all_details
 
     else:
         return "Please provide either an ArXiv ID or an abstract."

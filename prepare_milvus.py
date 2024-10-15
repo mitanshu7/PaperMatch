@@ -35,7 +35,7 @@ client.drop_collection(
 # Dataset schema
 schema = MilvusClient.create_schema(
     auto_id=False,
-    enable_dynamic_field=False
+    enable_dynamic_field=True
 )
 
 # Add the fields to the schema
