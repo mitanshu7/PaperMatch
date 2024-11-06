@@ -187,7 +187,8 @@ with gr.Blocks(theme=gr.themes.Soft(), title='PaperMatch') as demo:
     # Title and description
     gr.Markdown("# PaperMatch: Discover Related Research Papers")
     gr.Markdown("## Enter either an [ArXiv ID](https://info.arxiv.org/help/arxiv_identifier.html) or paste an abstract to explore papers based on semantic similarity.")
-    gr.Markdown("### _ArXiv Database last updated: August 2024_")
+    gr.Markdown("### Visit [PaperMatchMed](https://papermatchmed.mitanshu.tech) for [MedRiv](https://medrxiv.org/) and [PaperMatchBio](https://papermatchbio.mitanshu.tech) for [BioRxiv](https://www.biorxiv.org/) alternatives.")
+    gr.Markdown("### _ArXiv Database last updated: 6th November 2024_")
     
     # Input Section
     with gr.Row():
