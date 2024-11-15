@@ -141,7 +141,7 @@ def fetch_all_details(search_results):
 
 # Function to handle the UI logic
 @cache
-def predict(input_text, limit):
+def predict(input_text, limit=10, increment=10):
 
     # Check if input is empty
     if input_text == "":
@@ -177,7 +177,7 @@ def predict(input_text, limit):
         # Gather details about the found papers
         all_details = fetch_all_details(search_results)
 
-        return all_details
+        return all_details, gr.update(visible=True), limit+increment
     
     # When arxiv id is not found in input_text, treat input_text as abstract
     else:
@@ -191,8 +191,10 @@ def predict(input_text, limit):
         # Gather details about the found papers
         all_details = fetch_all_details(search_results)
         
-        return all_details
-            
+        return all_details, gr.update(visible=True), limit+increment
+
+################################################################################
+
 
 contact_text = """
 <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
@@ -220,35 +222,38 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
     # Input Section
     with gr.Row():
         input_text = gr.Textbox(
-            label="Enter ArXiv ID or Abstract", 
-            placeholder=f"Search {num_entries} papers on arXiv",
+            placeholder=f"Search from {num_entries} papers on arXiv",
+            autofocus=True,
+            submit_btn=True,
+            show_label=False
         )
-    
+
+    # State to track the current page limit
+    page_limit = gr.State(5)
+
+    # Define the increment for the "Load More" button
+    increment = gr.State(5)
+
+    # Output section
+    output = gr.Markdown(label="Related Papers", latex_delimiters=[{ "left": "$", "right": "$", "display": False}])
+
+    # Hidden by default, appears after the first search
+    load_more_button = gr.Button("Load More", visible=False)
+
+    input_text.submit(predict, [input_text, page_limit, increment], [output, load_more_button, page_limit])
+
+    # Event handler for the "Load More" button
+    load_more_button.click(predict, [input_text, page_limit, increment], [output, load_more_button, page_limit])
+
     # Example inputs
     gr.Examples(
         examples=examples, 
         inputs=input_text,
-        label="Example Queries"
+        label="Try:"
     )
-
-    # Slider for results count
-    slider_input = gr.Slider(
-        minimum=1, maximum=25, value=5, step=1, 
-        label="Number of Similar Papers"
-    )
-
-    # Submission Button
-    submit_btn = gr.Button("Find Papers")
-    
-    # Output section
-    output = gr.Markdown(label="Related Papers", latex_delimiters=[{ "left": "$", "right": "$", "display": False}])
 
     # Attribution
     gr.HTML(contact_text)
-
-    # Link button click to the prediction function
-    submit_btn.click(predict, [input_text, slider_input], output)
-
 
 ################################################################################
 
