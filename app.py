@@ -127,7 +127,7 @@ def fetch_all_details(search_results):
 
     # chr(10) is a new line character, replace to avoid formatting issues
         card = f"""
-### [{row["Title"].replace(chr(10),"")}]({row["URL"]})
+## [{row["Title"].replace(chr(10),"")}]({row["URL"]})
 > {row["Authors"]} \n
 {row["Abstract"]}
 ***
@@ -195,19 +195,17 @@ def predict(input_text, limit):
             
 
 contact_text = """
-# Contact Information
-
-👤  [Mitanshu Sukhwani](https://www.linkedin.com/in/mitanshusukhwani/)
-
-✉️  mitanshu.sukhwani@gmail.com
-
-🐙  [mitanshu7](https://github.com/mitanshu7)
+<div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
+    <h3>Made with ❤️ by <a href="https://www.linkedin.com/in/mitanshusukhwani/" target="_blank">Mitanshu Sukhwani</a></h3>
+</div>
 """
 
 examples = [
     "2401.07215",
-    "Game theory applications in marine biology"
+    "Smart TV and privacy"
 ]
+
+num_entries = format(milvus_client.get_collection_stats(collection_name="arxiv_abstracts")['row_count'], ",")
 
 ################################################################################
 # Create the Gradio interface
@@ -216,16 +214,14 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
                                     title='PaperMatch') as demo:
 
     # Title and description
-    gr.Markdown("# PaperMatch: Discover Related Research Papers")
-    gr.Markdown("## Enter either an [ArXiv ID](https://info.arxiv.org/help/arxiv_identifier.html) or paste an abstract to explore papers based on semantic similarity.")
-    gr.Markdown("### Visit [PaperMatchMed](https://papermatchmed.mitanshu.tech) for [MedRiv](https://medrxiv.org/) and [PaperMatchBio](https://papermatchbio.mitanshu.tech) for [BioRxiv](https://www.biorxiv.org/) alternatives.")
-    gr.Markdown("### _ArXiv Database last updated: 6th November 2024_")
-    
+    gr.Markdown("# PaperMatch")
+    gr.Markdown("### Discover Relevant Research, Instantly ⚡")
+
     # Input Section
     with gr.Row():
         input_text = gr.Textbox(
             label="Enter ArXiv ID or Abstract", 
-            placeholder="e.g., 1706.03762 or an abstract...",
+            placeholder=f"Search {num_entries} papers on arXiv",
         )
     
     # Example inputs
@@ -248,8 +244,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
     output = gr.Markdown(label="Related Papers", latex_delimiters=[{ "left": "$", "right": "$", "display": False}])
 
     # Attribution
-    gr.Markdown(contact_text)
-    gr.Markdown("_Thanks to [ArXiv](https://arxiv.org) for their open access interoperability._")
+    gr.HTML(contact_text)
 
     # Link button click to the prediction function
     submit_btn.click(predict, [input_text, slider_input], output)
