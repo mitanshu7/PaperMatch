@@ -26,6 +26,22 @@ mxbai_api_key = config["MXBAI_API_KEY"]
 mxbai = MixedbreadAI(api_key=mxbai_api_key)
 
 ################################################################################
+# Function to extract arXiv ID from a given text
+def extract_arxiv_id(text):
+
+    # Define regex patterns for pre-2007 and post-2007 arXiv IDs
+    pre_2007_pattern = re.compile(r"(?:^|\s|\/|arXiv:)([a-z-]+(?:\.[A-Z]{2})?\/\d{2}(?:0[1-9]|1[012])\d{3})(?:v\d+)?(?=$|\s)", re.IGNORECASE|re.MULTILINE)
+    post_2007_pattern = re.compile(r"(?:^|\s|\/|arXiv:)(\d{4}\.\d{4,5})(?:v\d+)?(?=$|\s)", re.IGNORECASE|re.MULTILINE)
+
+    # Search for matches
+    pre_match = pre_2007_pattern.search(text)
+    post_match = post_2007_pattern.search(text)
+
+    # Combine the matches
+    match = pre_match or post_match
+
+    # Return the match if found, otherwise return None
+    return match.group(1) if match else None
 
 # Function to search ArXiv by ID
 @cache
@@ -109,7 +125,7 @@ def fetch_all_details(search_results):
 
     for index, row in df.iterrows():
 
-# chr(10) is a new line character, replace to avoid formatting issues
+    # chr(10) is a new line character, replace to avoid formatting issues
         card = f"""
 ### [{row["Title"].replace(chr(10),"")}]({row["URL"]})
 > {row["Authors"]} \n
@@ -125,17 +141,20 @@ def fetch_all_details(search_results):
 
 # Function to handle the UI logic
 @cache
-def predict(input_type, input_text, limit):
+def predict(input_text, limit):
 
-    # When input is arxiv id
-    if input_type == "ArXiv ID":
+    # Check if input is empty
+    if input_text == "":
+        raise gr.Error("Please provide either an ArXiv ID or an abstract.", 10)
+    
+    # Extract arxiv id, if any
+    arxiv_id = extract_arxiv_id(input_text)
 
-        # Check if input is empty
-        if input_text == "":
-            raise gr.Error("Please enter a ArXiv ID", 10)
+    # When arxiv id is found in input_text 
+    if arxiv_id:
 
         # Search if id is already in database
-        id_in_db = milvus_client.get(collection_name="arxiv_abstracts",ids=[input_text])
+        id_in_db = milvus_client.get(collection_name="arxiv_abstracts",ids=[arxiv_id])
 
         # If the id is already in database
         if bool(id_in_db):
@@ -143,10 +162,11 @@ def predict(input_type, input_text, limit):
             # Get the vector
             abstract_vector = id_in_db[0]['vector']
 
+        # If the id is not already in database
         else:
 
             # Search arxiv for paper details
-            arxiv_json = fetch_arxiv_by_id(input_text)
+            arxiv_json = fetch_arxiv_by_id(arxiv_id)
 
             # Embed abstract
             abstract_vector = embed(arxiv_json['Abstract'])
@@ -159,22 +179,19 @@ def predict(input_type, input_text, limit):
 
         return all_details
     
-    elif input_type == "Abstract or Description":
-
-        # Check if input is empty
-        if input_text == "":
-            raise gr.Error("Please enter an abstract or description", 10)
-
+    # When arxiv id is not found in input_text, treat input_text as abstract
+    else:
+        
+        # Embed abstract
         abstract_vector = embed(input_text)
 
+        # Search database
         search_results = search(abstract_vector, limit)
 
+        # Gather details about the found papers
         all_details = fetch_all_details(search_results)
         
         return all_details
-
-    else:
-        return "Please provide either an ArXiv ID or an abstract."
             
 
 contact_text = """
@@ -188,13 +205,15 @@ contact_text = """
 """
 
 examples = [
-    ["ArXiv ID", "2401.07215"],
-    ["Abstract or Description", "Game theory applications in marine biology"]
+    "2401.07215",
+    "Game theory applications in marine biology"
 ]
 
 ################################################################################
 # Create the Gradio interface
-with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), font_mono=gr.themes.GoogleFont("Roboto Mono")), title='PaperMatchMed') as demo:
+with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), 
+                                    font_mono=gr.themes.GoogleFont("Roboto Mono")), 
+                                    title='PaperMatch') as demo:
 
     # Title and description
     gr.Markdown("# PaperMatch: Discover Related Research Papers")
@@ -204,13 +223,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), font
     
     # Input Section
     with gr.Row():
-        input_type = gr.Dropdown(
-            choices=["ArXiv ID", "Abstract or Description"],
-            label="Input Type",
-            value="ArXiv ID",
-            interactive=True,
-        )
-        id_or_text_input = gr.Textbox(
+        input_text = gr.Textbox(
             label="Enter ArXiv ID or Abstract", 
             placeholder="e.g., 1706.03762 or an abstract...",
         )
@@ -218,7 +231,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), font
     # Example inputs
     gr.Examples(
         examples=examples, 
-        inputs=[input_type, id_or_text_input],
+        inputs=input_text,
         label="Example Queries"
     )
 
@@ -239,7 +252,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), font
     gr.Markdown("_Thanks to [ArXiv](https://arxiv.org) for their open access interoperability._")
 
     # Link button click to the prediction function
-    submit_btn.click(predict, [input_type, id_or_text_input, slider_input], output)
+    submit_btn.click(predict, [input_text, slider_input], output)
 
 
 ################################################################################
