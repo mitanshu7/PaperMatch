@@ -104,10 +104,22 @@ def fetch_all_details(search_results):
     # Convert to dataframe
     df = pd.DataFrame(all_details)
 
-    # Convert to HTML table and return
-    html = df.to_html(render_links=True, index=False)
+    # Make a card for each row
+    cards = ""
 
-    return html
+    for index, row in df.iterrows():
+
+# chr(10) is a new line character, replace to avoid formatting issues
+        card = f"""
+### [{row["Title"].replace(chr(10),"")}]({row["URL"]})
+> {row["Authors"]} \n
+{row["Abstract"]}
+***
+"""
+    
+        cards +=card
+    
+    return cards
 
 ################################################################################
 
@@ -182,7 +194,7 @@ examples = [
 
 ################################################################################
 # Create the Gradio interface
-with gr.Blocks(theme=gr.themes.Soft(), title='PaperMatch') as demo:
+with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), font_mono=gr.themes.GoogleFont("Roboto Mono")), title='PaperMatchMed') as demo:
 
     # Title and description
     gr.Markdown("# PaperMatch: Discover Related Research Papers")
@@ -220,7 +232,7 @@ with gr.Blocks(theme=gr.themes.Soft(), title='PaperMatch') as demo:
     submit_btn = gr.Button("Find Papers")
     
     # Output section
-    output = gr.HTML(label="Related Papers")
+    output = gr.Markdown(label="Related Papers", latex_delimiters=[{ "left": "$", "right": "$", "display": False}])
 
     # Attribution
     gr.Markdown(contact_text)
