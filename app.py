@@ -208,13 +208,44 @@ examples = [
     "Smart TV and privacy"
 ]
 
+# Show total number of entries in database
 num_entries = format(milvus_client.get_collection_stats(collection_name="arxiv_abstracts")['row_count'], ",")
+
+# Create a back to top button
+back_to_top_btn_html = '''
+<button id="toTopBtn" onclick="'parentIFrame' in window ? window.parentIFrame.scrollTo({top: 0, behavior:'smooth'}) : window.scrollTo({ top: 0 })">
+    <a style="color:#6366f1; text-decoration:none;">&#8593;</a> <!-- Use the ^ character -->
+</button>'''
+
+# CSS for the back to top button
+style = """
+#toTopBtn {
+    position: fixed;
+    bottom: 10px;
+    right: 10px; /* Adjust this value to position it at the bottom-right corner */
+    height: 40px; /* Increase the height for a better look */
+    width: 40px; /* Set a fixed width for the button */
+    font-size: 20px; /* Set font size for the ^ icon */
+    border-color: #e0e7ff; /* Change border color using hex */
+    background-color: #e0e7ff; /* Change background color using hex */
+    text-align: center; /* Align the text in the center */
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%; /* Make it circular */
+    box-shadow: 0px 4px 6px rgba(0, 0, 0, 0.2); /* Add shadow for better visibility */
+}
+
+#toTopBtn:hover {
+    background-color: #c7d4ff; /* Change background color on hover */
+}
+"""
 
 ################################################################################
 # Create the Gradio interface
 with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), 
                                     font_mono=gr.themes.GoogleFont("Roboto Mono")), 
-                                    title='PaperMatch') as demo:
+                                    title='PaperMatch', css=style) as demo:
 
     # Title and description
     gr.HTML('<h1><a href="https://papermatch.mitanshu.tech" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>')
@@ -255,6 +286,9 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
         fn=predict,
         label="Try:",
         run_on_click=True)
+
+    # Back to top button
+    gr.HTML(back_to_top_btn_html)
 
     # Attribution
     gr.HTML(contact_text)
