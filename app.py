@@ -195,13 +195,14 @@ def predict(input_text, limit=5, increment=5):
 
 ################################################################################
 
-
+# Variable to store contact information
 contact_text = """
 <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
     <h3>Made with ❤️ by <a href="https://www.linkedin.com/in/mitanshusukhwani/" target="_blank">Mitanshu Sukhwani</a></h3>
 </div>
 """
 
+# Examples to display
 examples = [
     "2401.07215",
     "Smart TV and privacy"
@@ -216,13 +217,13 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
                                     title='PaperMatch') as demo:
 
     # Title and description
-    gr.Markdown("# PaperMatch")
+    gr.HTML('<h1><a href="https://papermatch.mitanshu.tech" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>')
     gr.Markdown("### Discover Relevant Research, Instantly ⚡")
 
     # Input Section
     with gr.Row():
         input_text = gr.Textbox(
-            placeholder=f"Search from {num_entries} papers on arXiv",
+            placeholder=f"Search {num_entries} papers on arXiv",
             autofocus=True,
             submit_btn=True,
             show_label=False
@@ -234,12 +235,13 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
     # Define the increment for the "Load More" button
     increment = gr.State(5)
 
-    # Output section
+    # Output section, displays the search results
     output = gr.Markdown(label="Related Papers", latex_delimiters=[{ "left": "$", "right": "$", "display": False}])
 
     # Hidden by default, appears after the first search
     load_more_button = gr.Button("Load More", visible=False)
 
+    # Event handler for the input text box, triggers the search function
     input_text.submit(predict, [input_text, page_limit, increment], [output, load_more_button, page_limit])
 
     # Event handler for the "Load More" button
