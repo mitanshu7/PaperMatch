@@ -103,8 +103,7 @@ def search(vector, limit):
     return result[0]
 
 ################################################################################
-# Function to 
-
+# Function to fetch paper details of all results
 def fetch_all_details(search_results):
 
     all_details = []
@@ -147,10 +146,17 @@ def predict(input_text, limit=5, increment=5):
     if input_text == "":
         raise gr.Error("Please provide either an ArXiv ID or an abstract.", 10)
     
+    # Define extra outputs to pass
+    # This hack shows the load_more button once the search has been made
+    show_element = gr.update(visible=True)
+
+    # This variable is used to increment the search limit when the load_more button is clicked
+    new_limit = limit+increment
+    
     # Extract arxiv id, if any
     arxiv_id = extract_arxiv_id(input_text)
 
-    # When arxiv id is found in input_text 
+    # When arxiv id is found in input text 
     if arxiv_id:
 
         # Search if id is already in database
@@ -177,9 +183,9 @@ def predict(input_text, limit=5, increment=5):
         # Gather details about the found papers
         all_details = fetch_all_details(search_results)
 
-        return all_details, gr.update(visible=True), limit+increment
+        return all_details, show_element, new_limit
     
-    # When arxiv id is not found in input_text, treat input_text as abstract
+    # When arxiv id is not found in input text, treat input text as abstract
     else:
         
         # Embed abstract
@@ -191,14 +197,15 @@ def predict(input_text, limit=5, increment=5):
         # Gather details about the found papers
         all_details = fetch_all_details(search_results)
         
-        return all_details, gr.update(visible=True), limit+increment
+        return all_details, show_element, new_limit
 
 ################################################################################
 
 # Variable to store contact information
 contact_text = """
 <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
-    <h3>Made with ❤️ by <a href="https://www.linkedin.com/in/mitanshusukhwani/" target="_blank">Mitanshu Sukhwani</a></h3>
+    <h3>Crafted with ❤️ by <a href="https://www.linkedin.com/in/mitanshusukhwani/" target="_blank">Mitanshu Sukhwani</a></h3>
+    <h4>Discover more at <a href="https://papermatchbio.mitanshu.tech" target="_blank">PaperMatchBio</a></h4>
 </div>
 """
 
