@@ -43,6 +43,48 @@ def extract_arxiv_id(text):
     # Return the match if found, otherwise return None
     return match.group(1) if match else None
 
+################################################################################
+
+# Function to extract Month and year of publication using arxiv ID
+def extract_month_year(url):
+
+    # Extract the year and month from the URL
+    arxiv_id = extract_arxiv_id(url)
+
+    # Check if arxiv_id is not None before proceeding
+    if arxiv_id:
+
+        # Check if the arXiv ID is a pre-2007 format or post-2007 format
+        # Pre-2007 format: archive.subject_class/YYMMnnn
+        if '/' in arxiv_id:
+
+            # Extract the YYMMnnn part
+            yymmnnn = arxiv_id.split('/')[1]
+
+            # Extract first 4 digits
+            yymm = yymmnnn[:4]
+
+        # Post-2007 format: YYMM.NNNNN
+        else:
+
+            yymm = arxiv_id.split('.')[0]
+
+        # Convert the year-month string to a datetime object
+        date = pd.to_datetime(yymm, format='%y%m')
+
+        # Format the date as a string in the desired format
+        formatted_date = date.strftime('%B %Y')
+
+        # Return the formatted date
+        return formatted_date
+
+    else:
+
+        # Return None if arxiv_id is None
+        return None
+
+################################################################################            
+
 # Function to search ArXiv by ID
 @cache
 def fetch_arxiv_by_id(arxiv_id):
@@ -127,7 +169,7 @@ def fetch_all_details(search_results):
     # chr(10) is a new line character, replace to avoid formatting issues
         card = f"""
 ## [{row["Title"].replace(chr(10),"")}]({row["URL"]})
-> {row["Authors"]} \n
+> **{row["Authors"]}** | _{extract_month_year(row["URL"])}_ \n
 {row["Abstract"]}
 ***
 """
