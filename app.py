@@ -42,7 +42,6 @@ def extract_arxiv_id(text):
 
     # Return the match if found, otherwise return None
     return match.group(1) if match else None
-
 ################################################################################
 
 # Function to extract Month and year of publication using arxiv ID
@@ -294,7 +293,7 @@ style = """
 # Create the Gradio interface
 with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), 
                                     font_mono=gr.themes.GoogleFont("Roboto Mono")), 
-                                    title='PaperMatch', css=style) as demo:
+                                    title='PaperMatch', css=style, analytics_enabled=False) as demo:
 
     # Title and description
     gr.HTML('<h1><a href="https://papermatch.mitanshu.tech" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>')
@@ -345,4 +344,4 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 ################################################################################
 
 if __name__ == "__main__":
-    demo.launch(server_port=7861, favicon_path='logo.png')
+    demo.launch(server_port=7861, favicon_path='logo.png', show_api=False)
