@@ -108,11 +108,17 @@ WantedBy=default.target
 3. issue `systemctl --user start search_arxiv.service` to start the app.
 4. Issue `systemctl --user enable  search_arxiv.service` to enable app at start up.
 
-## To Do:
-- [ ] Automate embedding of new metadata each month.
-- [ ] Learn incremental databse update.
-- [ ] Automate setting up of the app.
-- [ ] Find more sources to integrate.
+## Keep milvus updated:
+1. Run the `update_milvus.sh` script to update the milvus database, modify script accordingly.
+2. Setup a crontab to run the script every week, modify command accordingly.
+```bash
+crontab -e
+
+0 0 * * 3 /bin/bash /home/milvus/PaperMatch/update_milvus.sh >> /home/milvus/PaperMatch/update_milvus_crontab.log 2>&1
+
+crontab -l
+```
+This cron runs midnight every Wednesday.
 
 ## Contributing
 
