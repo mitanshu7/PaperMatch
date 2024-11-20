@@ -108,9 +108,8 @@ WantedBy=default.target
 3. issue `systemctl --user start search_arxiv.service` to start the app.
 4. Issue `systemctl --user enable  search_arxiv.service` to enable app at start up.
 
-## Keep milvus updated:
-1. Run the `update_milvus.sh` script to update the milvus database, modify script accordingly.
-2. Setup a crontab to run the script every week, modify command accordingly.
+## Keep vector database updated:
+1. Setup a crontab to run the script `update_milvus.sh` every week, modify command accordingly.
 ```bash
 crontab -e
 
