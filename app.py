@@ -313,7 +313,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
     output = gr.Markdown(label="Related Papers", latex_delimiters=[{ "left": "$", "right": "$", "display": False}])
 
     # Hidden by default, appears after the first search
-    load_more_button = gr.Button("Load More", visible=False)
+    load_more_button = gr.Button("More results ⬇️", visible=False)
 
     # Event handler for the input text box, triggers the search function
     input_text.submit(predict, [input_text, page_limit, increment], [output, load_more_button, new_page_limit])
@@ -339,4 +339,5 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 ################################################################################
 
 if __name__ == "__main__":
-    demo.launch(server_port=7861, favicon_path='logo.png', show_api=False)
+    
+    demo.launch(ssr_mode=True, server_port=7860, node_port=7861,  favicon_path='logo.png', show_api=False)
