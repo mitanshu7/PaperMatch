@@ -1,9 +1,11 @@
-# PaperMatch: arXiv Search with Embeddings and Milvus
+# [PaperMatch](https://papermatch.mitanshu.tech/): arXiv Search with Embeddings and Milvus
 ## Frontend for [embed_arxiv_simpler](https://github.com/mitanshu7/embed_arxiv_simpler)
 
 This project allows users to search for arXiv papers either by ID or abstract. The search functionality is powered by a machine learning embedding model and Milvus, a vector database. Gradio is used to create a user-friendly web interface for interaction. 
 
 See implemented demo at [papermatch.mitanshu.tech](https://papermatch.mitanshu.tech)
+
+![Demo](demo.gif)
 
 See full explanation at the corresponding blog post: [mitanshu.tech/posts/papermatch](https://mitanshu.tech/posts/papermatch/)
 
@@ -16,17 +18,17 @@ See full explanation at the corresponding blog post: [mitanshu.tech/posts/paperm
 ## Requirements
 
 - Python 3.7+
-- Gradio
-- Milvus
-- `mixedbread-ai/mxbai-embed-large-v1` (or any compatible embedding model)
+- [Gradio](https://www.gradio.app/) for Frontend.
+- [Milvus](https://milvus.io/) for Vector similarity search.
+- [node.js](https://nodejs.org/en/download/package-manager) for SSR.
 
 ## Installation
 
 1. **Clone the repository:**
 
    ```bash
-   git clone [<repository-url>](https://github.com/mitanshu7/search_arxiv.git)
-   cd search_arxiv
+   git clone https://github.com/mitanshu7/PaperMatch.git
+   cd PaperMatch
    ```
 
 2. **Create a virtual environment (optional but recommended):**
@@ -45,7 +47,7 @@ See full explanation at the corresponding blog post: [mitanshu.tech/posts/paperm
 4. **Set up Milvus:**
    - Follow the [Milvus installation guide](https://milvus.io/docs) to get Milvus up and running.
    - Configure Milvus with your preferred settings.
-   - Or use `standalone_embed.sh` in this repo made compatible with Fedora.
+   - Or use `standalone_embed.sh` in this repo made compatible with Fedora + Podman.
 
 ## Usage
 
@@ -57,7 +59,7 @@ See full explanation at the corresponding blog post: [mitanshu.tech/posts/paperm
    ```
 
 2. **Setup API key :**
-   Get your key from [Mixedbread](https://www.mixedbread.ai/)
+   Get your key from [Mixedbread](https://www.mixedbread.ai/api-reference/authentication)
    and paste it in `.env` file. See `.env.sample` for config.
 
 3. **Run the Gradio app:**
@@ -73,7 +75,7 @@ See full explanation at the corresponding blog post: [mitanshu.tech/posts/paperm
 
 ## Configuration
 
-- **Embedding Model:** The embedding model used is `mixedbread-ai/mxbai-embed-large-v1`.
+- **Embedding Model:** The embedding model used is [**mixedbread-ai/mxbai-embed-large-v1**](https://www.mixedbread.ai/docs/embeddings/mxbai-embed-large-v1) which happens to have [these nice properties](https://www.mixedbread.ai/blog/binary-mrl).
 
 ## Example
 
@@ -90,14 +92,14 @@ Here is a basic example of how to use the search feature:
 ## Run at startup (systemd):
 1. create a file `~/.config/systemd/user/search_arxiv.service` using:
 `nano ~/.config/systemd/user/search_arxiv.service`
-with the following contents (assuming user=milvus, and using anaconda package manager with env name search_arxiv):
+with the following contents (assuming user is `milvus`, and using *anaconda package manager* with env name `search_arxiv`):
 ```bash
 [Unit]
-Description=Search ArXiv  Web App
+Description=Search ArXiv Web App
 After=network.target
 
 [Service]
-WorkingDirectory=/home/milvus/search_arxiv/
+WorkingDirectory=/home/milvus/PaperMatch/
 ExecStart=/bin/bash -c "source /home/milvus/miniforge3/bin/activate search_arxiv && python app.py"
 Restart=always
 
@@ -105,7 +107,7 @@ Restart=always
 WantedBy=default.target
 ```
 2. Issue `systemctl --user daemon-reload` to reload systemd.
-3. issue `systemctl --user start search_arxiv.service` to start the app.
+3. Issue `systemctl --user start search_arxiv.service` to start the app.
 4. Issue `systemctl --user enable  search_arxiv.service` to enable app at start up.
 
 ## Keep vector database updated:
@@ -113,11 +115,11 @@ WantedBy=default.target
 ```bash
 crontab -e
 
-0 0 * * 3 /bin/bash /home/milvus/PaperMatch/update_milvus.sh >> /home/milvus/PaperMatch/update_milvus_crontab.log 2>&1
+0 0 * * 1 /bin/bash /home/milvus/PaperMatch/update_milvus.sh >> /home/milvus/PaperMatch/update_milvus_crontab.log 2>&1
 
 crontab -l
 ```
-This cron runs midnight every Wednesday.
+This cron runs midnight every Monday.
 
 ## Contributing
 
