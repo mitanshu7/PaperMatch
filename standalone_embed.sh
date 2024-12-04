@@ -122,6 +122,24 @@ delete() {
     echo "Delete successfully."
 }
 
+upgrade() {
+    read -p "Please confirm if you'd like to proceed with the upgrade. The default will be to the latest version. Confirm with 'y' for yes or 'n' for no. > " check
+    if [ "$check" == "y" ] ||[ "$check" == "Y" ];then
+        res=`docker ps -a|grep milvus-standalone|wc -l`
+        if [ $res -eq 1 ]
+        then
+            stop
+            delete_container
+        fi
+
+        curl -sfL https://raw.githubusercontent.com/milvus-io/milvus/master/scripts/standalone_embed.sh -o standalone_embed_latest.sh && \
+        bash standalone_embed_latest.sh start 1> /dev/null && \
+        echo "Upgrade successfully."
+    else
+        echo "Exit upgrade"
+        exit 0
+    fi
+}
 
 case $1 in
     restart)
@@ -134,10 +152,13 @@ case $1 in
     stop)
         stop
         ;;
+    upgrade)
+        upgrade
+        ;;
     delete)
         delete
         ;;
     *)
-        echo "please use bash standalone_embed.sh restart|start|stop|delete"
+        echo "please use bash standalone_embed.sh restart|start|stop|upgrade|delete"
         ;;
 esac
