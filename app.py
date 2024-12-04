@@ -42,45 +42,6 @@ def extract_arxiv_id(text):
 
     # Return the match if found, otherwise return None
     return match.group(1) if match else None
-################################################################################
-
-# Function to extract Month and year of publication using arxiv ID
-def extract_month_year(url):
-
-    # Extract the year and month from the URL
-    arxiv_id = extract_arxiv_id(url)
-
-    # Check if arxiv_id is not None before proceeding
-    if arxiv_id:
-
-        # Check if the arXiv ID is a pre-2007 format or post-2007 format
-        # Pre-2007 format: archive.subject_class/YYMMnnn
-        if '/' in arxiv_id:
-
-            # Extract the YYMMnnn part
-            yymmnnn = arxiv_id.split('/')[1]
-
-            # Extract first 4 digits
-            yymm = yymmnnn[:4]
-
-        # Post-2007 format: YYMM.NNNNN
-        else:
-
-            yymm = arxiv_id.split('.')[0]
-
-        # Convert the year-month string to a datetime object
-        date = pd.to_datetime(yymm, format='%y%m')
-
-        # Format the date as a string in the desired format
-        formatted_date = date.strftime('%B %Y')
-
-        # Return the formatted date
-        return formatted_date
-
-    else:
-
-        # Return None if arxiv_id is None
-        return None
 
 ################################################################################            
 
@@ -98,10 +59,14 @@ def fetch_arxiv_by_id(arxiv_id):
 
         # Extract the relevant metadata from the paper object
         return {
-                "Title": paper.title,
-                "Authors": ", ".join([str(author) for author in paper.authors]),
-                "Abstract": paper.summary,
-                "URL": paper.pdf_url
+                "id": extract_arxiv_id(paper.entry_id),
+                "title": paper.title.replace('\n', ' '),
+                "authors": ", ".join([str(author).replace('\n', ' ') for author in paper.authors]),
+                "abstract": paper.summary.replace('\n', ' '),
+                "url": paper.pdf_url,
+                "month": paper.published.strftime('%B'),
+                "year": paper.published.year,
+                "categories": ", ".join(paper.categories).replace('\n', ' '),
             }
 
     except Exception as e:
@@ -132,12 +97,10 @@ def embed(text):
 def search(vector, limit):
 
     result = milvus_client.search(
-        collection_name="arxiv_abstracts", # Replace with the actual name of your collection
-        # Replace with your query vector
-        data=[vector],
+        collection_name="arxiv_abstracts", # Collection to search in
+        data=[vector], # Vector to search for
         limit=limit, # Max. number of search results to return
-        search_params={"metric_type": "COSINE"}, # Search parameters
-        output_fields=["$meta"] # Output fields to return
+        output_fields=['id', 'vector', 'title', 'abstract', 'authors', 'categories', 'month', 'year', 'url'] # Output fields to return
     )
 
     # returns a list of dictionaries with id and distance as keys
@@ -147,29 +110,18 @@ def search(vector, limit):
 # Function to fetch paper details of all results
 def fetch_all_details(search_results):
 
-    all_details = []
+    # Initialize an empty string to store the cards
+    cards = ""
 
     for search_result in search_results:
 
         paper_details = search_result['entity']
 
-        paper_details['Similarity Score'] = np.round(search_result['distance']*100, 2)
-
-        all_details.append(paper_details)
-
-    # Convert to dataframe
-    df = pd.DataFrame(all_details)
-
-    # Make a card for each row
-    cards = ""
-
-    for index, row in df.iterrows():
-
     # chr(10) is a new line character, replace to avoid formatting issues
         card = f"""
-## [{row["Title"].replace(chr(10),"")}]({row["URL"]})
-> **{row["Authors"]}** | _{extract_month_year(row["URL"])}_ \n
-{row["Abstract"]}
+## [{paper_details['title']}]({paper_details['url']})
+> **{paper_details['authors']}** | _{paper_details['month']} {paper_details['year']}_ \n
+{paper_details['abstract']}
 ***
 """
     
@@ -216,7 +168,7 @@ def predict(input_text, limit=5, increment=5):
             arxiv_json = fetch_arxiv_by_id(arxiv_id)
 
             # Embed abstract
-            abstract_vector = embed(arxiv_json['Abstract'])
+            abstract_vector = embed(arxiv_json['abstract'])
     
     # When arxiv id is not found in input text, treat input text as abstract
     else:
@@ -340,4 +292,4 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 
 if __name__ == "__main__":
     
-    demo.launch(ssr_mode=True, server_port=7860, node_port=7861,  favicon_path='logo.png', show_api=False)
+    demo.launch(server_port=7860, favicon_path='logo.png', show_api=False)
