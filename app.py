@@ -3,11 +3,11 @@ import gradio as gr
 from pymilvus import MilvusClient
 import numpy as np
 import arxiv
-from mixedbread_ai.client import MixedbreadAI
-from dotenv import dotenv_values
 import re
 from functools import cache
-import pandas as pd
+from sentence_transformers import SentenceTransformer
+import torch
+
 
 ################################################################################
 # Configuration
@@ -18,12 +18,16 @@ milvus_client = MilvusClient("http://localhost:19530")
 # Construct the Arxiv API client.
 arxiv_client = arxiv.Client(page_size=1, delay_seconds=1)
 
-# Import secrets
-config = dotenv_values(".env")
+# Load Model
+# Model to use for embedding
+model_name = "mixedbread-ai/mxbai-embed-large-v1"
 
-# Setup mxbai
-mxbai_api_key = config["MXBAI_API_KEY"]
-mxbai = MixedbreadAI(api_key=mxbai_api_key)
+# Make the app device agnostic
+device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+# Load a pretrained Sentence Transformer model and move it to the appropriate device
+print(f"Loading model {model_name} to device: {device}")
+model = SentenceTransformer(model_name).to(device)
 
 ################################################################################
 # Function to extract arXiv ID from a given text
@@ -75,23 +79,24 @@ def fetch_arxiv_by_id(arxiv_id):
         raise gr.Error( f"Failed to fetch metadata for ID '{arxiv_id}'. Error: {e}")
 
 ################################################################################
+# Function to convert dense vector to binary vector
+def dense_to_binary(dense_vector):
+    return np.packbits(np.where(dense_vector >= 0, 1, 0)).tobytes()
+
 # Function to embed text
 @cache
 def embed(text):
 
-    res = mxbai.embeddings(
-    model='mixedbread-ai/mxbai-embed-large-v1',
-    input=text,
-    normalized=True,
-    encoding_format='ubinary',
-    truncation_strategy='end',
-    dimensions=1024
-    )
+    # Calculate embeddings by calling model.encode(), specifying the device
+    embedding = model.encode(text, device=device, precision="float32")
 
-    # Convert the embedding to a numpy array of uint8 encoding and then to bytes
-    vector = np.array(res.data[0].embedding, dtype=np.uint8).tobytes()
+    # Enforce 32-bit float precision
+    embedding = np.array(embedding, dtype=np.float32)
 
-    return vector
+    # Convert the dense vector to a binary vector
+    embedding = dense_to_binary(embedding)
+
+    return embedding
 
 ################################################################################
 # Single vector search
