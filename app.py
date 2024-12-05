@@ -83,11 +83,13 @@ def embed(text):
     model='mixedbread-ai/mxbai-embed-large-v1',
     input=text,
     normalized=True,
-    encoding_format='float',
-    truncation_strategy='end'
+    encoding_format='ubinary',
+    truncation_strategy='end',
+    dimensions=1024
     )
 
-    vector = np.array(res.data[0].embedding)
+    # Convert the embedding to a numpy array of uint8 encoding and then to bytes
+    vector = np.array(res.data[0].embedding, dtype=np.uint8).tobytes()
 
     return vector
 
@@ -159,7 +161,7 @@ def predict(input_text, limit=5, increment=5):
         if bool(id_in_db):
 
             # Get the vector
-            abstract_vector = id_in_db[0]['vector']
+            abstract_vector = id_in_db[0]['vector'][0] 
 
         # If the id is not already in database
         else:
