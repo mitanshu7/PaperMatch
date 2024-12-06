@@ -17,6 +17,9 @@ from dotenv import dotenv_values
 # Set to True if you want to use local recources (cpu/gpu) or False if you want to use MixedBread.ai
 LOCAL = True
 
+# Set to True if you want to use the fp32 embbedings or False if you want to use the binary embbedings
+FLOAT = True
+
 # Define Milvus client
 milvus_client = MilvusClient("http://localhost:19530")
 
@@ -101,30 +104,60 @@ def dense_to_binary(dense_vector):
 @cache
 def embed(text):
 
-    if LOCAL:
+    # Check if the embedding should be a float or binary vector
+    if FLOAT:
 
-        # Calculate embeddings by calling model.encode(), specifying the device
-        embedding = model.encode(text, device=device, precision="float32")
+        # Check if the embedding should be generated locally or using the MixedBread.ai API
+        if LOCAL:
 
-        # Enforce 32-bit float precision
-        embedding = np.array(embedding, dtype=np.float32)
+            # Calculate embeddings by calling model.encode(), specifying the device
+            embedding = model.encode(text, device=device, precision="float32")
 
-        # Convert the dense vector to a binary vector
-        embedding = dense_to_binary(embedding)
+            # Enforce 32-bit float precision
+            embedding = np.array(embedding, dtype=np.float32)
+        
+        else:
+            # Call the MixedBread.ai API to generate the embedding
+            result = mxbai.embeddings(
+                model='mixedbread-ai/mxbai-embed-large-v1',
+                input=text,
+                normalized=True,
+                encoding_format='float',
+                truncation_strategy='end',
+                dimensions=1024
+            )
+
+            embedding = np.array(result.data[0].embedding, dtype=np.float32)
     
+    # If the embedding should be a binary vector
     else:
-        # Call the MixedBread.ai API to generate the embedding
-        result = mxbai.embeddings(
-            model='mixedbread-ai/mxbai-embed-large-v1',
-            input=text,
-            normalized=True,
-            encoding_format='ubinary',
-            truncation_strategy='end',
-            dimensions=1024
-        )
 
-        # Convert the embedding to a numpy array of uint8 encoding and then to bytes
-        embedding = np.array(result.data[0].embedding, dtype=np.uint8).tobytes()
+        # Check if the embedding should be generated locally or using the MixedBread.ai API
+        if LOCAL:
+
+            # Calculate embeddings by calling model.encode(), specifying the device
+            embedding = model.encode(text, device=device, precision="float32")
+
+            # Enforce 32-bit float precision
+            embedding = np.array(embedding, dtype=np.float32)
+
+            # Convert the dense vector to a binary vector
+            embedding = dense_to_binary(embedding)
+        
+        else:
+
+            # Call the MixedBread.ai API to generate the embedding
+            result = mxbai.embeddings(
+                model='mixedbread-ai/mxbai-embed-large-v1',
+                input=text,
+                normalized=True,
+                encoding_format='ubinary',
+                truncation_strategy='end',
+                dimensions=1024
+            )
+
+            # Convert the embedding to a numpy array of uint8 encoding and then to bytes
+            embedding = np.array(result.data[0].embedding, dtype=np.uint8).tobytes()
 
     return embedding
 
@@ -195,8 +228,13 @@ def predict(input_text, limit=5, increment=5):
         # If the id is already in database
         if bool(id_in_db):
 
-            # Get the vector
-            abstract_vector = id_in_db[0]['vector'][0] 
+            # Get the 1024-dimensional dense vector
+            if FLOAT:
+                abstract_vector = id_in_db[0]['vector']
+
+            # Get the bytes of a binary vector
+            else:
+                abstract_vector = id_in_db[0]['vector'][0] 
 
         # If the id is not already in database
         else:
