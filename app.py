@@ -7,10 +7,15 @@ import re
 from functools import cache
 from sentence_transformers import SentenceTransformer
 import torch
+from mixedbread_ai.client import MixedbreadAI
+from dotenv import dotenv_values
 
 
 ################################################################################
 # Configuration
+
+# Set to True if you want to use local recources (cpu/gpu) or False if you want to use MixedBread.ai
+LOCAL = True
 
 # Define Milvus client
 milvus_client = MilvusClient("http://localhost:19530")
@@ -22,12 +27,21 @@ arxiv_client = arxiv.Client(page_size=1, delay_seconds=1)
 # Model to use for embedding
 model_name = "mixedbread-ai/mxbai-embed-large-v1"
 
-# Make the app device agnostic
-device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+if LOCAL:
+    # Make the app device agnostic
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
-# Load a pretrained Sentence Transformer model and move it to the appropriate device
-print(f"Loading model {model_name} to device: {device}")
-model = SentenceTransformer(model_name).to(device)
+    # Load a pretrained Sentence Transformer model and move it to the appropriate device
+    print(f"Loading model {model_name} to device: {device}")
+    model = SentenceTransformer(model_name).to(device)
+
+else:
+    # Import secrets
+    config = dotenv_values(".env")
+
+    # Setup mxbai
+    mxbai_api_key = config["MXBAI_API_KEY"]
+    mxbai = MixedbreadAI(api_key=mxbai_api_key)
 
 ################################################################################
 # Function to extract arXiv ID from a given text
@@ -87,14 +101,30 @@ def dense_to_binary(dense_vector):
 @cache
 def embed(text):
 
-    # Calculate embeddings by calling model.encode(), specifying the device
-    embedding = model.encode(text, device=device, precision="float32")
+    if LOCAL:
 
-    # Enforce 32-bit float precision
-    embedding = np.array(embedding, dtype=np.float32)
+        # Calculate embeddings by calling model.encode(), specifying the device
+        embedding = model.encode(text, device=device, precision="float32")
 
-    # Convert the dense vector to a binary vector
-    embedding = dense_to_binary(embedding)
+        # Enforce 32-bit float precision
+        embedding = np.array(embedding, dtype=np.float32)
+
+        # Convert the dense vector to a binary vector
+        embedding = dense_to_binary(embedding)
+    
+    else:
+        # Call the MixedBread.ai API to generate the embedding
+        result = mxbai.embeddings(
+            model='mixedbread-ai/mxbai-embed-large-v1',
+            input=text,
+            normalized=True,
+            encoding_format='ubinary',
+            truncation_strategy='end',
+            dimensions=1024
+        )
+
+        # Convert the embedding to a numpy array of uint8 encoding and then to bytes
+        embedding = np.array(result.data[0].embedding, dtype=np.uint8).tobytes()
 
     return embedding
 
