@@ -202,7 +202,6 @@ def fetch_all_details(search_results):
 ################################################################################
 
 # Function to handle the UI logic
-@cache
 def predict(input_text, limit=5, increment=5):
 
     # Check if input is empty
