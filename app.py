@@ -354,7 +354,8 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
         outputs=[output, load_more_button, new_page_limit],
         fn=predict,
         label="Try:",
-        run_on_click=True)
+        run_on_click=True,
+        cache_examples=True)
 
     # Back to top button
     gr.HTML(back_to_top_btn_html)
@@ -366,4 +367,4 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 
 if __name__ == "__main__":
     
-    demo.launch(ssr_mode=True, server_port=7860, node_port=7861, favicon_path='logo.png', show_api=False)
+    demo.launch(ssr_mode=False, server_port=7860, node_port=7861, favicon_path='logo.png', show_api=False)
