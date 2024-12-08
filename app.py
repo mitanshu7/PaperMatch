@@ -15,10 +15,10 @@ from dotenv import dotenv_values
 # Configuration
 
 # Set to True if you want to use local recources (cpu/gpu) or False if you want to use MixedBread.ai
-LOCAL = True
+LOCAL = False
 
 # Set to True if you want to use the fp32 embbedings or False if you want to use the binary embbedings
-FLOAT = True
+FLOAT = False
 
 # Define Milvus client
 milvus_client = MilvusClient("http://localhost:19530")
