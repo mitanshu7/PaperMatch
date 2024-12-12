@@ -3,14 +3,22 @@ import gradio as gr
 from pymilvus import MilvusClient
 import numpy as np
 import arxiv
-from mixedbread_ai.client import MixedbreadAI
-from dotenv import dotenv_values
 import re
 from functools import cache
-import pandas as pd
+from sentence_transformers import SentenceTransformer
+import torch
+from mixedbread_ai.client import MixedbreadAI
+from dotenv import dotenv_values
+
 
 ################################################################################
 # Configuration
+
+# Set to True if you want to use local recources (cpu/gpu) or False if you want to use MixedBread.ai
+LOCAL = False
+
+# Set to True if you want to use the fp32 embbedings or False if you want to use the binary embbedings
+FLOAT = False
 
 # Define Milvus client
 milvus_client = MilvusClient("http://localhost:19530")
@@ -18,12 +26,25 @@ milvus_client = MilvusClient("http://localhost:19530")
 # Construct the Arxiv API client.
 arxiv_client = arxiv.Client(page_size=1, delay_seconds=1)
 
-# Import secrets
-config = dotenv_values(".env")
+# Load Model
+# Model to use for embedding
+model_name = "mixedbread-ai/mxbai-embed-large-v1"
 
-# Setup mxbai
-mxbai_api_key = config["MXBAI_API_KEY"]
-mxbai = MixedbreadAI(api_key=mxbai_api_key)
+if LOCAL:
+    # Make the app device agnostic
+    device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
+
+    # Load a pretrained Sentence Transformer model and move it to the appropriate device
+    print(f"Loading model {model_name} to device: {device}")
+    model = SentenceTransformer(model_name).to(device)
+
+else:
+    # Import secrets
+    config = dotenv_values(".env")
+
+    # Setup mxbai
+    mxbai_api_key = config["MXBAI_API_KEY"]
+    mxbai = MixedbreadAI(api_key=mxbai_api_key)
 
 ################################################################################
 # Function to extract arXiv ID from a given text
@@ -42,45 +63,6 @@ def extract_arxiv_id(text):
 
     # Return the match if found, otherwise return None
     return match.group(1) if match else None
-################################################################################
-
-# Function to extract Month and year of publication using arxiv ID
-def extract_month_year(url):
-
-    # Extract the year and month from the URL
-    arxiv_id = extract_arxiv_id(url)
-
-    # Check if arxiv_id is not None before proceeding
-    if arxiv_id:
-
-        # Check if the arXiv ID is a pre-2007 format or post-2007 format
-        # Pre-2007 format: archive.subject_class/YYMMnnn
-        if '/' in arxiv_id:
-
-            # Extract the YYMMnnn part
-            yymmnnn = arxiv_id.split('/')[1]
-
-            # Extract first 4 digits
-            yymm = yymmnnn[:4]
-
-        # Post-2007 format: YYMM.NNNNN
-        else:
-
-            yymm = arxiv_id.split('.')[0]
-
-        # Convert the year-month string to a datetime object
-        date = pd.to_datetime(yymm, format='%y%m')
-
-        # Format the date as a string in the desired format
-        formatted_date = date.strftime('%B %Y')
-
-        # Return the formatted date
-        return formatted_date
-
-    else:
-
-        # Return None if arxiv_id is None
-        return None
 
 ################################################################################            
 
@@ -98,10 +80,14 @@ def fetch_arxiv_by_id(arxiv_id):
 
         # Extract the relevant metadata from the paper object
         return {
-                "Title": paper.title,
-                "Authors": ", ".join([str(author) for author in paper.authors]),
-                "Abstract": paper.summary,
-                "URL": paper.pdf_url
+                "id": extract_arxiv_id(paper.entry_id),
+                "title": paper.title.replace('\n', ' '),
+                "authors": ", ".join([str(author).replace('\n', ' ') for author in paper.authors]),
+                "abstract": paper.summary.replace('\n', ' '),
+                "url": paper.pdf_url,
+                "month": paper.published.strftime('%B'),
+                "year": paper.published.year,
+                "categories": ", ".join(paper.categories).replace('\n', ' '),
             }
 
     except Exception as e:
@@ -110,21 +96,70 @@ def fetch_arxiv_by_id(arxiv_id):
         raise gr.Error( f"Failed to fetch metadata for ID '{arxiv_id}'. Error: {e}")
 
 ################################################################################
+# Function to convert dense vector to binary vector
+def dense_to_binary(dense_vector):
+    return np.packbits(np.where(dense_vector >= 0, 1, 0)).tobytes()
+
 # Function to embed text
 @cache
 def embed(text):
 
-    res = mxbai.embeddings(
-    model='mixedbread-ai/mxbai-embed-large-v1',
-    input=text,
-    normalized=True,
-    encoding_format='float',
-    truncation_strategy='end'
-    )
+    # Check if the embedding should be a float or binary vector
+    if FLOAT:
 
-    vector = np.array(res.data[0].embedding)
+        # Check if the embedding should be generated locally or using the MixedBread.ai API
+        if LOCAL:
 
-    return vector
+            # Calculate embeddings by calling model.encode(), specifying the device
+            embedding = model.encode(text, device=device, precision="float32")
+
+            # Enforce 32-bit float precision
+            embedding = np.array(embedding, dtype=np.float32)
+        
+        else:
+            # Call the MixedBread.ai API to generate the embedding
+            result = mxbai.embeddings(
+                model='mixedbread-ai/mxbai-embed-large-v1',
+                input=text,
+                normalized=True,
+                encoding_format='float',
+                truncation_strategy='end',
+                dimensions=1024
+            )
+
+            embedding = np.array(result.data[0].embedding, dtype=np.float32)
+    
+    # If the embedding should be a binary vector
+    else:
+
+        # Check if the embedding should be generated locally or using the MixedBread.ai API
+        if LOCAL:
+
+            # Calculate embeddings by calling model.encode(), specifying the device
+            embedding = model.encode(text, device=device, precision="float32")
+
+            # Enforce 32-bit float precision
+            embedding = np.array(embedding, dtype=np.float32)
+
+            # Convert the dense vector to a binary vector
+            embedding = dense_to_binary(embedding)
+        
+        else:
+
+            # Call the MixedBread.ai API to generate the embedding
+            result = mxbai.embeddings(
+                model='mixedbread-ai/mxbai-embed-large-v1',
+                input=text,
+                normalized=True,
+                encoding_format='ubinary',
+                truncation_strategy='end',
+                dimensions=1024
+            )
+
+            # Convert the embedding to a numpy array of uint8 encoding and then to bytes
+            embedding = np.array(result.data[0].embedding, dtype=np.uint8).tobytes()
+
+    return embedding
 
 ################################################################################
 # Single vector search
@@ -132,12 +167,10 @@ def embed(text):
 def search(vector, limit):
 
     result = milvus_client.search(
-        collection_name="arxiv_abstracts", # Replace with the actual name of your collection
-        # Replace with your query vector
-        data=[vector],
+        collection_name="arxiv_abstracts", # Collection to search in
+        data=[vector], # Vector to search for
         limit=limit, # Max. number of search results to return
-        search_params={"metric_type": "COSINE"}, # Search parameters
-        output_fields=["$meta"] # Output fields to return
+        output_fields=['id', 'vector', 'title', 'abstract', 'authors', 'categories', 'month', 'year', 'url'] # Output fields to return
     )
 
     # returns a list of dictionaries with id and distance as keys
@@ -147,29 +180,18 @@ def search(vector, limit):
 # Function to fetch paper details of all results
 def fetch_all_details(search_results):
 
-    all_details = []
+    # Initialize an empty string to store the cards
+    cards = ""
 
     for search_result in search_results:
 
         paper_details = search_result['entity']
 
-        paper_details['Similarity Score'] = np.round(search_result['distance']*100, 2)
-
-        all_details.append(paper_details)
-
-    # Convert to dataframe
-    df = pd.DataFrame(all_details)
-
-    # Make a card for each row
-    cards = ""
-
-    for index, row in df.iterrows():
-
     # chr(10) is a new line character, replace to avoid formatting issues
         card = f"""
-## [{row["Title"].replace(chr(10),"")}]({row["URL"]})
-> **{row["Authors"]}** | _{extract_month_year(row["URL"])}_ \n
-{row["Abstract"]}
+## [{paper_details['title']}]({paper_details['url']})
+> **{paper_details['authors']}** | _{paper_details['month']} {paper_details['year']}_ \n
+{paper_details['abstract']}
 ***
 """
     
@@ -180,7 +202,6 @@ def fetch_all_details(search_results):
 ################################################################################
 
 # Function to handle the UI logic
-@cache
 def predict(input_text, limit=5, increment=5):
 
     # Check if input is empty
@@ -206,8 +227,13 @@ def predict(input_text, limit=5, increment=5):
         # If the id is already in database
         if bool(id_in_db):
 
-            # Get the vector
-            abstract_vector = id_in_db[0]['vector']
+            # Get the 1024-dimensional dense vector
+            if FLOAT:
+                abstract_vector = id_in_db[0]['vector']
+
+            # Get the bytes of a binary vector
+            else:
+                abstract_vector = id_in_db[0]['vector'][0] 
 
         # If the id is not already in database
         else:
@@ -216,7 +242,7 @@ def predict(input_text, limit=5, increment=5):
             arxiv_json = fetch_arxiv_by_id(arxiv_id)
 
             # Embed abstract
-            abstract_vector = embed(arxiv_json['Abstract'])
+            abstract_vector = embed(arxiv_json['abstract'])
     
     # When arxiv id is not found in input text, treat input text as abstract
     else:
@@ -328,7 +354,8 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
         outputs=[output, load_more_button, new_page_limit],
         fn=predict,
         label="Try:",
-        run_on_click=True)
+        run_on_click=True,
+        cache_examples=False)
 
     # Back to top button
     gr.HTML(back_to_top_btn_html)
@@ -340,4 +367,4 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 
 if __name__ == "__main__":
     
-    demo.launch(ssr_mode=True, server_port=7860, node_port=7861,  favicon_path='logo.png', show_api=False)
+    demo.launch(ssr_mode=False, server_port=7860, node_port=7861, favicon_path='logo.png', show_api=False)

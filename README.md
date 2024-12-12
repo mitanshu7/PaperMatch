@@ -1,5 +1,5 @@
 # [PaperMatch](https://papermatch.mitanshu.tech/): arXiv Search with Embeddings and Milvus
-## Frontend for [embed_arxiv_simpler](https://github.com/mitanshu7/embed_arxiv_simpler)
+## Backend at [embed_arxiv_simpler](https://github.com/mitanshu7/embed_arxiv_simpler)
 
 This project allows users to search for arXiv papers either by ID or abstract. The search functionality is powered by a machine learning embedding model and Milvus, a vector database. Gradio is used to create a user-friendly web interface for interaction. 
 
@@ -11,13 +11,14 @@ See full explanation at the corresponding blog post: [mitanshu.tech/posts/paperm
 
 ## Features
 
-- **Search by Abstract:** Convert the abstract into a vector using the `mixedbread-ai/mxbai-embed-large-v1` model and find similar papers based on cosine similarity.
+- **Search by Abstract:** Convert the abstract into a vector and find similar papers based on cosine similarity.
 - **Search by ID:** Retrieve information directly by arXiv ID.
 - **Top K Results:** Display the top K results from Milvus based on similarity.
+- **Embedding Model:** The embedding model used is [**mixedbread-ai/mxbai-embed-large-v1**](https://www.mixedbread.ai/docs/embeddings/mxbai-embed-large-v1) which happens to have [these nice properties](https://www.mixedbread.ai/blog/binary-mrl).
 
 ## Requirements
 
-- Python 3.7+
+- Python 3.10+
 - [Gradio](https://www.gradio.app/) for Frontend.
 - [Milvus](https://milvus.io/) for Vector similarity search.
 - [node.js](https://nodejs.org/en/download/package-manager) for SSR.
@@ -44,38 +45,26 @@ See full explanation at the corresponding blog post: [mitanshu.tech/posts/paperm
    pip install -r requirements.txt
    ```
 
-4. **Set up Milvus:**
-   - Follow the [Milvus installation guide](https://milvus.io/docs) to get Milvus up and running.
-   - Configure Milvus with your preferred settings.
-   - Or use `standalone_embed.sh` in this repo made compatible with Fedora + Podman.
-
 ## Usage
 
-1. **Prepare Milvus:**
 
-   ```bash
-   # Command to prepare Milvus 
-   python prepare_milvus.py
-   ```
-
-2. **Setup API key :**
-   Get your key from [Mixedbread](https://www.mixedbread.ai/api-reference/authentication)
+1. **Setup app.py :**
+- If using API to create embeddings, keep `LOCAL=False`:
+   - Get your key from [Mixedbread](https://www.mixedbread.ai/api-reference/authentication)
    and paste it in `.env` file. See `.env.sample` for config.
+- Keep `FLOAT=True` if you want to use float32 embeddings, else it will use binary embeddings.
 
-3. **Run the Gradio app:**
+2. **Run the Gradio app:**
 
    ```bash
    python app.py
    ```
 
-4. **Interact with the web interface:**
+3. **Interact with the web interface:**
 
    - Open your web browser and go to `http://localhost:7860` to access the Gradio interface.
    - Use the search bar to input arXiv ID or abstract and view the search results.
 
-## Configuration
-
-- **Embedding Model:** The embedding model used is [**mixedbread-ai/mxbai-embed-large-v1**](https://www.mixedbread.ai/docs/embeddings/mxbai-embed-large-v1) which happens to have [these nice properties](https://www.mixedbread.ai/blog/binary-mrl).
 
 ## Example
 
@@ -90,36 +79,28 @@ Here is a basic example of how to use the search feature:
    - Retrieve and display the corresponding paper details.
   
 ## Run at startup (systemd):
-1. create a file `~/.config/systemd/user/search_arxiv.service` using:
-`nano ~/.config/systemd/user/search_arxiv.service`
-with the following contents (assuming user is `milvus`, and using *anaconda package manager* with env name `search_arxiv`):
+1. Create folder using `mkdir -p ~/.config/systemd/user/` if it doesn't already exist.
+2. Create a service file using:
+`nano ~/.config/systemd/user/papermatch.service`
+with the following contents (assuming using *miniforge package manager* with env name `papermatch`):
 ```bash
 [Unit]
-Description=Search ArXiv Web App
+Description=PaperMatch App
 After=network.target
 
 [Service]
-WorkingDirectory=/home/milvus/PaperMatch/
-ExecStart=/bin/bash -c "source /home/milvus/miniforge3/bin/activate search_arxiv && python app.py"
+WorkingDirectory=/home/$USER/PaperMatch/
+ExecStart=/bin/bash -c "source /home/$USER/miniforge3/bin/activate papermatch && python app.py"
 Restart=always
 
 [Install]
 WantedBy=default.target
 ```
 2. Issue `systemctl --user daemon-reload` to reload systemd.
-3. Issue `systemctl --user start search_arxiv.service` to start the app.
-4. Issue `systemctl --user enable  search_arxiv.service` to enable app at start up.
+3. Issue `systemctl --user start papermatch.service` to start the app.
+4. Issue `systemctl --user enable  papermatch.service` to enable app at start up.
 
-## Keep vector database updated:
-1. Setup a crontab to run the script `update_milvus.sh` every week, modify command accordingly.
-```bash
-crontab -e
 
-0 0 * * 1 /bin/bash /home/milvus/PaperMatch/update_milvus.sh >> /home/milvus/PaperMatch/update_milvus_crontab.log 2>&1
-
-crontab -l
-```
-This cron runs midnight every Monday.
 
 ## Contributing
 
