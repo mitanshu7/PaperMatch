@@ -355,7 +355,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
         fn=predict,
         label="Try:",
         run_on_click=True,
-        cache_examples=True)
+        cache_examples=False)
 
     # Back to top button
     gr.HTML(back_to_top_btn_html)
