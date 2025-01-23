@@ -3,3 +3,4 @@ user.yaml
 volumes/
 *tmp*
 .env
+*.log
