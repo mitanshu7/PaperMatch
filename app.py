@@ -164,12 +164,13 @@ def embed(text):
 ################################################################################
 # Single vector search
 
-def search(vector, limit):
+def search(vector, limit=5, filter_=""):
 
     result = milvus_client.search(
         collection_name="arxiv_abstracts", # Collection to search in
         data=[vector], # Vector to search for
         limit=limit, # Max. number of search results to return
+        filter=filter_, # Filter to apply to the search results
         output_fields=['id', 'vector', 'title', 'abstract', 'authors', 'categories', 'month', 'year', 'url'] # Output fields to return
     )
 
@@ -202,11 +203,15 @@ def fetch_all_details(search_results):
 ################################################################################
 
 # Function to handle the UI logic
-def predict(input_text, limit=5, increment=5):
+def predict(input_text, limit=5, increment=5, filter_=""):
 
     # Check if input is empty
     if input_text == "":
         raise gr.Error("Please provide either an ArXiv ID or an abstract.", 10)
+
+    # Modify the filter query
+    if filter_ != "":
+        filter_ = f'year == "{filter_}"'
     
     # Define extra outputs to pass
     # This hack shows the load_more button once the search has been made
@@ -251,7 +256,7 @@ def predict(input_text, limit=5, increment=5):
         abstract_vector = embed(input_text)
 
     # Search database
-    search_results = search(abstract_vector, limit)
+    search_results = search(abstract_vector, limit, filter_=filter_)
 
     # Gather details about the found papers
     all_details = fetch_all_details(search_results)
@@ -326,6 +331,10 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
             show_label=False
         )
 
+    # Add a dropdown box to filter by year
+    choices = [""] + [str(year) for year in range(2025, 1991, -1)]
+    year_filter = gr.Dropdown(choices=choices, label="Filter by Year", value="", interactive=True, visible=True)
+    
     # Define the initial page limit 
     page_limit = gr.State(5)
 
@@ -342,10 +351,13 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
     load_more_button = gr.Button("More results ⬇️", visible=False)
 
     # Event handler for the input text box, triggers the search function
-    input_text.submit(predict, [input_text, page_limit, increment], [output, load_more_button, new_page_limit])
+    input_text.submit(predict, [input_text, page_limit, increment, year_filter], [output, load_more_button, new_page_limit])
 
     # Event handler for the "Load More" button
-    load_more_button.click(predict, [input_text, new_page_limit, increment], [output, load_more_button, new_page_limit])
+    load_more_button.click(predict, [input_text, new_page_limit, increment, year_filter], [output, load_more_button, new_page_limit])
+
+    # Event handler for the year filter
+    year_filter.change(predict, [input_text, page_limit, increment, year_filter], [output, load_more_button, new_page_limit])
 
     # Example inputs
     gr.Examples(
