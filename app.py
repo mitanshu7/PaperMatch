@@ -7,9 +7,9 @@ import re
 from functools import cache
 from sentence_transformers import SentenceTransformer
 import torch
-from mixedbread_ai.client import MixedbreadAI
 from dotenv import dotenv_values
-
+from gradio_client import Client
+import ast
 
 ################################################################################
 # Configuration
@@ -42,9 +42,11 @@ else:
     # Import secrets
     config = dotenv_values(".env")
 
-    # Setup mxbai
-    mxbai_api_key = config["MXBAI_API_KEY"]
-    mxbai = MixedbreadAI(api_key=mxbai_api_key)
+    # Setup gradio client
+    gradio_url = config["GRADIO_URL"]
+    gradio_username = config["GRADIO_USERNAME"]
+    gradio_password = config["GRADIO_PASSWORD"]
+    gradio_client = Client(gradio_url, auth=(gradio_username, gradio_password))
 
 ################################################################################
 # Function to extract arXiv ID from a given text
@@ -117,17 +119,10 @@ def embed(text):
             embedding = np.array(embedding, dtype=np.float32)
         
         else:
-            # Call the MixedBread.ai API to generate the embedding
-            result = mxbai.embeddings(
-                model='mixedbread-ai/mxbai-embed-large-v1',
-                input=text,
-                normalized=True,
-                encoding_format='float',
-                truncation_strategy='end',
-                dimensions=1024
-            )
+            # Call the gradio API to generate the embedding
+            result = gradio_client.predict(text=text)
 
-            embedding = np.array(result.data[0].embedding, dtype=np.float32)
+            embedding = np.array(result[0], dtype=np.float32)
     
     # If the embedding should be a binary vector
     else:
@@ -146,18 +141,11 @@ def embed(text):
         
         else:
 
-            # Call the MixedBread.ai API to generate the embedding
-            result = mxbai.embeddings(
-                model='mixedbread-ai/mxbai-embed-large-v1',
-                input=text,
-                normalized=True,
-                encoding_format='ubinary',
-                truncation_strategy='end',
-                dimensions=1024
-            )
+            # Call the gradio API to generate the embedding
+            result = gradio_client.predict(text=text)
 
-            # Convert the embedding to a numpy array of uint8 encoding and then to bytes
-            embedding = np.array(result.data[0].embedding, dtype=np.uint8).tobytes()
+            # Convert this string to bytes
+            embedding = ast.literal_eval(result[1])
 
     return embedding
 
