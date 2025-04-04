@@ -4,3 +4,4 @@ volumes/
 *tmp*
 .env
 *.log
+.gradio/
