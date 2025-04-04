@@ -7,7 +7,7 @@ import re
 from functools import cache
 from sentence_transformers import SentenceTransformer
 import torch
-from mixedbread_ai.client import MixedbreadAI
+from mixedbread import Mixedbread
 from dotenv import dotenv_values
 
 
@@ -44,7 +44,7 @@ else:
 
     # Setup mxbai
     mxbai_api_key = config["MXBAI_API_KEY"]
-    mxbai = MixedbreadAI(api_key=mxbai_api_key)
+    mxbai = Mixedbread(api_key=mxbai_api_key, base_url="https://api.mixedbread.com")
 
 ################################################################################
 # Function to extract arXiv ID from a given text
@@ -118,12 +118,11 @@ def embed(text):
         
         else:
             # Call the MixedBread.ai API to generate the embedding
-            result = mxbai.embeddings(
+            result = mxbai.embed(
                 model='mixedbread-ai/mxbai-embed-large-v1',
                 input=text,
                 normalized=True,
                 encoding_format='float',
-                truncation_strategy='end',
                 dimensions=1024
             )
 
@@ -147,12 +146,11 @@ def embed(text):
         else:
 
             # Call the MixedBread.ai API to generate the embedding
-            result = mxbai.embeddings(
+            result = mxbai.embed(
                 model='mixedbread-ai/mxbai-embed-large-v1',
                 input=text,
                 normalized=True,
                 encoding_format='ubinary',
-                truncation_strategy='end',
                 dimensions=1024
             )
 
