@@ -5,4 +5,4 @@ gradio
 huggingface_hub
 arxiv
 python-dotenv
-mixedbread
+mixedbread-ai
