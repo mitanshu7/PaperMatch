@@ -1,6 +1,8 @@
+torch
+sentence-transformers
 pymilvus
 gradio
 huggingface_hub
 arxiv
 python-dotenv
-mixedbread-ai
+mixedbread
