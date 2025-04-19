@@ -64,7 +64,7 @@ def extract_arxiv_id(text):
     # Return the match if found, otherwise return None
     return match.group(1) if match else None
 
-################################################################################            
+################################################################################
 
 # Function to search ArXiv by ID
 @cache
@@ -115,7 +115,7 @@ def embed(text):
 
             # Enforce 32-bit float precision
             embedding = np.array(embedding, dtype=np.float32)
-        
+
         else:
             # Call the MixedBread.ai API to generate the embedding
             result = mxbai.embeddings(
@@ -128,7 +128,7 @@ def embed(text):
             )
 
             embedding = np.array(result.data[0].embedding, dtype=np.float32)
-    
+
     # If the embedding should be a binary vector
     else:
 
@@ -143,7 +143,7 @@ def embed(text):
 
             # Convert the dense vector to a binary vector
             embedding = dense_to_binary(embedding)
-        
+
         else:
 
             # Call the MixedBread.ai API to generate the embedding
@@ -163,18 +163,27 @@ def embed(text):
 
 ################################################################################
 # Single vector search
+from mxbai_rerank import MxbaiRerankV2
+# Load the model, here we use our base sized model
+model = MxbaiRerankV2("mixedbread-ai/mxbai-rerank-base-v2")
 
-def search(vector, limit):
+def search(vector, limit, query):
+
+    multiplier = 1
 
     result = milvus_client.search(
         collection_name="arxiv_abstracts", # Collection to search in
         data=[vector], # Vector to search for
-        limit=limit, # Max. number of search results to return
+        limit=multiplier*limit, # Max. number of search results to return
         output_fields=['id', 'vector', 'title', 'abstract', 'authors', 'categories', 'month', 'year', 'url'] # Output fields to return
     )
 
+    result = model.rank(query, result[0], top_k=limit)
+
+    print(result)
+
     # returns a list of dictionaries with id and distance as keys
-    return result[0]
+    return result
 
 ################################################################################
 # Function to fetch paper details of all results
@@ -185,7 +194,7 @@ def fetch_all_details(search_results):
 
     for search_result in search_results:
 
-        paper_details = search_result['entity']
+        paper_details = search_result.document['entity']
 
     # chr(10) is a new line character, replace to avoid formatting issues
         card = f"""
@@ -194,9 +203,9 @@ def fetch_all_details(search_results):
 {paper_details['abstract']}
 ***
 """
-    
+
         cards +=card
-    
+
     return cards
 
 ################################################################################
@@ -207,25 +216,27 @@ def predict(input_text, limit=5, increment=5):
     # Check if input is empty
     if input_text == "":
         raise gr.Error("Please provide either an ArXiv ID or an abstract.", 10)
-    
+
     # Define extra outputs to pass
     # This hack shows the load_more button once the search has been made
     show_element = gr.update(visible=True)
 
     # This variable is used to increment the search limit when the load_more button is clicked
     new_limit = limit+increment
-    
+
     # Extract arxiv id, if any
     arxiv_id = extract_arxiv_id(input_text)
 
-    # When arxiv id is found in input text 
+    # When arxiv id is found in input text
     if arxiv_id:
 
         # Search if id is already in database
-        id_in_db = milvus_client.get(collection_name="arxiv_abstracts",ids=[arxiv_id])
-
+        id_in_db = milvus_client.get(collection_name="arxiv_abstracts",ids=[arxiv_id], output_fields=['id', 'vector', 'title', 'abstract', 'authors', 'categories', 'month', 'year', 'url'])
+        
         # If the id is already in database
         if bool(id_in_db):
+
+            query = id_in_db[0]['abstract']
 
             # Get the 1024-dimensional dense vector
             if FLOAT:
@@ -233,7 +244,7 @@ def predict(input_text, limit=5, increment=5):
 
             # Get the bytes of a binary vector
             else:
-                abstract_vector = id_in_db[0]['vector'][0] 
+                abstract_vector = id_in_db[0]['vector'][0]
 
         # If the id is not already in database
         else:
@@ -241,21 +252,25 @@ def predict(input_text, limit=5, increment=5):
             # Search arxiv for paper details
             arxiv_json = fetch_arxiv_by_id(arxiv_id)
 
+            query = arxiv_json['abstract']
+
             # Embed abstract
             abstract_vector = embed(arxiv_json['abstract'])
-    
+
     # When arxiv id is not found in input text, treat input text as abstract
     else:
-        
+
+        query = input_text
+
         # Embed abstract
         abstract_vector = embed(input_text)
 
     # Search database
-    search_results = search(abstract_vector, limit)
+    search_results = search(abstract_vector, limit, query)
 
     # Gather details about the found papers
     all_details = fetch_all_details(search_results)
-        
+
     return all_details, show_element, new_limit
 
 ################################################################################
@@ -309,8 +324,8 @@ style = """
 
 ################################################################################
 # Create the Gradio interface
-with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), 
-                                    font_mono=gr.themes.GoogleFont("Roboto Mono")), 
+with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
+                                    font_mono=gr.themes.GoogleFont("Roboto Mono")),
                                     title='PaperMatch', css=style, analytics_enabled=False) as demo:
 
     # Title and description
@@ -326,7 +341,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
             show_label=False
         )
 
-    # Define the initial page limit 
+    # Define the initial page limit
     page_limit = gr.State(5)
 
     # Define the increment for the "Load More" button
@@ -349,7 +364,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 
     # Example inputs
     gr.Examples(
-        examples=examples, 
+        examples=examples,
         inputs=input_text,
         outputs=[output, load_more_button, new_page_limit],
         fn=predict,
@@ -366,5 +381,5 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 ################################################################################
 
 if __name__ == "__main__":
-    
+
     demo.launch(ssr_mode=False, server_port=7860, node_port=7861, favicon_path='logo.png', show_api=False)
