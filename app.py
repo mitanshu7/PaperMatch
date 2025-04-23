@@ -7,8 +7,9 @@ import re
 from functools import cache
 from sentence_transformers import SentenceTransformer
 import torch
-from mixedbread_ai.client import MixedbreadAI
 from dotenv import dotenv_values
+from gradio_client import Client
+import ast
 
 
 ################################################################################
@@ -27,10 +28,12 @@ milvus_client = MilvusClient("http://localhost:19530")
 arxiv_client = arxiv.Client(page_size=1, delay_seconds=1)
 
 # Load Model
-# Model to use for embedding
-model_name = "mixedbread-ai/mxbai-embed-large-v1"
+
 
 if LOCAL:
+    # Model to use for embedding
+    model_name = "mixedbread-ai/mxbai-embed-large-v1"
+    
     # Make the app device agnostic
     device = torch.device("cuda") if torch.cuda.is_available() else torch.device("cpu")
 
@@ -42,9 +45,15 @@ else:
     # Import secrets
     config = dotenv_values(".env")
 
-    # Setup mxbai
-    mxbai_api_key = config["MXBAI_API_KEY"]
-    mxbai = MixedbreadAI(api_key=mxbai_api_key)
+    # Setup gradio client
+    gradio_username = config["GRADIO_USERNAME"]
+    gradio_password = config["GRADIO_PASSWORD"]
+
+    gradio_embed_url = config["GRADIO_EMBED_URL"]
+    gradio_embed_client = Client(gradio_embed_url, auth=(gradio_username, gradio_password))
+
+    gradio_rerank_url = config["GRADIO_RERANK_URL"]
+    gradio_rerank_client = Client(gradio_rerank_url, auth=(gradio_username, gradio_password))
 
 ################################################################################
 # Function to extract arXiv ID from a given text
@@ -117,17 +126,10 @@ def embed(text):
             embedding = np.array(embedding, dtype=np.float32)
 
         else:
-            # Call the MixedBread.ai API to generate the embedding
-            result = mxbai.embeddings(
-                model='mixedbread-ai/mxbai-embed-large-v1',
-                input=text,
-                normalized=True,
-                encoding_format='float',
-                truncation_strategy='end',
-                dimensions=1024
-            )
+            # Call the gradio API to generate the embedding
+            result = gradio_embed_client.predict(text=text)
 
-            embedding = np.array(result.data[0].embedding, dtype=np.float32)
+            embedding = np.array(result[0], dtype=np.float32)
 
     # If the embedding should be a binary vector
     else:
@@ -146,44 +148,47 @@ def embed(text):
 
         else:
 
-            # Call the MixedBread.ai API to generate the embedding
-            result = mxbai.embeddings(
-                model='mixedbread-ai/mxbai-embed-large-v1',
-                input=text,
-                normalized=True,
-                encoding_format='ubinary',
-                truncation_strategy='end',
-                dimensions=1024
-            )
+            # Call the gradio API to generate the embedding
+            result = gradio_embed_client.predict(text=text)
 
-            # Convert the embedding to a numpy array of uint8 encoding and then to bytes
-            embedding = np.array(result.data[0].embedding, dtype=np.uint8).tobytes()
+            # Convert this string to bytes
+            embedding = ast.literal_eval(result[1])
 
     return embedding
 
 ################################################################################
-# Single vector search
-from mxbai_rerank import MxbaiRerankV2
-# Load the model, here we use our base sized model
-model = MxbaiRerankV2("mixedbread-ai/mxbai-rerank-base-v2")
+# Rerank search results
+@cache
+def rerank_search_results(query, search_results):
 
+    # Call the gradio API to rerank the search results
+    result = gradio_rerank_client.predict(query=query, documents=search_results)
+
+    # Return the reranked results
+    return result
+
+# Single vector search
 def search(vector, limit, query):
 
-    multiplier = 1
+    print("Searching for:", query)
 
-    result = milvus_client.search(
+    initial_limit = 10
+
+    search_results = milvus_client.search(
         collection_name="arxiv_abstracts", # Collection to search in
         data=[vector], # Vector to search for
-        limit=multiplier*limit, # Max. number of search results to return
-        output_fields=['id', 'vector', 'title', 'abstract', 'authors', 'categories', 'month', 'year', 'url'] # Output fields to return
+        limit=initial_limit, # Max. number of search results to return
+        output_fields=['title', 'abstract', 'authors', 'categories', 'month', 'year', 'url'] # Output fields to return
     )
 
-    result = model.rank(query, result[0], top_k=limit)
+    print("Search results:", search_results[0])
 
-    print(result)
+    reranked_results = rerank_search_results(query, str(search_results[0]))
+
+    print("Reranked results:", reranked_results)
 
     # returns a list of dictionaries with id and distance as keys
-    return result
+    return reranked_results[:limit]
 
 ################################################################################
 # Function to fetch paper details of all results
@@ -194,7 +199,7 @@ def fetch_all_details(search_results):
 
     for search_result in search_results:
 
-        paper_details = search_result.document['entity']
+        paper_details = search_result["document"]['entity']
 
     # chr(10) is a new line character, replace to avoid formatting issues
         card = f"""
