@@ -179,7 +179,8 @@ def fetch_all_details(search_results):
         card = f"""
 ## [{paper_details['title']}]({paper_details['url']})
 > **{paper_details['authors']}** | _{paper_details['month']} {paper_details['year']}_ \n
-{paper_details['abstract']}
+{paper_details['abstract']} \n
+['Openreview']("https://duckduckgo.com/?q={paper_details['title']}+site:openreview.net")
 ***
 """
     
