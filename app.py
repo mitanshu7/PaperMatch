@@ -50,7 +50,7 @@ else:
 
 ################################################################################
 # Function to extract arXiv ID from a given text
-def extract_arxiv_id(text):
+def extract_arxiv_id(text:str) -> str|None:
 
     # Define regex patterns for pre-2007 and post-2007 arXiv IDs
     pre_2007_pattern = re.compile(r"(?:^|\s|\/|arXiv:)([a-z-]+(?:\.[A-Z]{2})?\/\d{2}(?:0[1-9]|1[012])\d{3})(?:v\d+)?(?=$|\s)", re.IGNORECASE|re.MULTILINE)
@@ -70,7 +70,7 @@ def extract_arxiv_id(text):
 
 # Function to search ArXiv by ID
 @cache
-def fetch_arxiv_by_id(arxiv_id):
+def fetch_arxiv_by_id(arxiv_id:str) -> dict|gr.Error:
 
     # Search for the paper using the Arxiv API
     search = arxiv.Search(id_list=[arxiv_id])
@@ -99,12 +99,12 @@ def fetch_arxiv_by_id(arxiv_id):
 
 ################################################################################
 # Function to convert dense vector to binary vector
-def dense_to_binary(dense_vector):
+def dense_to_binary(dense_vector:np.ndarray) -> bytes:
     return np.packbits(np.where(dense_vector >= 0, 1, 0)).tobytes()
 
 # Function to embed text
 @cache
-def embed(text):
+def embed(text:str) -> np.ndarray|bytes:
 
     # Check if the embedding should be a float or binary vector
     if FLOAT:
@@ -152,7 +152,7 @@ def embed(text):
 ################################################################################
 # Single vector search
 
-def search(vector, limit):
+def search(vector:np.ndarray, limit:int) -> list[dict]:
 
     result = milvus_client.search(
         collection_name="arxiv_abstracts", # Collection to search in
@@ -166,7 +166,7 @@ def search(vector, limit):
 
 ################################################################################
 # Function to fetch paper details of all results
-def fetch_all_details(search_results):
+def fetch_all_details(search_results:list[dict]) -> str:
 
     # Initialize an empty string to store the cards
     cards = ""
@@ -191,7 +191,7 @@ def fetch_all_details(search_results):
 ################################################################################
 
 # Function to handle the UI logic
-def predict(input_text, limit=5, increment=5):
+def predict(input_text:str, limit:int=5, increment:int=5) -> tuple[str, gr.update, int]:
 
     # Check if input is empty
     if input_text == "":
@@ -297,7 +297,7 @@ style = """
 """
 
 # Function for the info toggle button
-def toggle_info(showing):
+def toggle_info(showing:bool) -> tuple[gr.update, bool]:
     if showing:
         return gr.update(value="", visible=False), False
     else:
@@ -378,4 +378,4 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 
 if __name__ == "__main__":
     
-    demo.launch(ssr_mode=False, server_port=7860, node_port=7861, favicon_path='logo.png', show_api=False)
+    demo.launch(ssr_mode=False, server_port=7870, node_port=7861, favicon_path='logo.png', show_api=False)
