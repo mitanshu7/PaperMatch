@@ -296,6 +296,16 @@ style = """
 }
 """
 
+# Function for the info toggle button
+def toggle_info(showing):
+    if showing:
+        return gr.update(value="", visible=False), False
+    else:
+        return gr.update(value="""
+📄 **Enter either the paper’s abstract or its arXiv [ID](https://info.arxiv.org/help/arxiv_identifier.html)/URL**  
+_This helps us generate the most accurate results._
+""", visible=True), True
+
 ################################################################################
 # Create the Gradio interface
 with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), 
@@ -304,7 +314,19 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 
     # Title and description
     gr.HTML('<h1><a href="https://papermatch.me" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>')
-    gr.Markdown("### Discover Relevant Research, Instantly ⚡")
+
+    with gr.Row():
+        with gr.Column(scale=4):
+
+            gr.Markdown("### Discover Relevant Research, Instantly ⚡")
+
+        with gr.Column(scale=1):
+            # Info button implementation
+            btn_state = gr.State(False)  # Track whether the info is shown
+            btn = gr.Button(value="", size="sm", icon="https://raw.githubusercontent.com/mitanshu7/dumpyard/refs/heads/main/information-button.png")
+            info = gr.Markdown(visible=False)
+
+            btn.click(toggle_info, inputs=btn_state, outputs=[info, btn_state])
 
     # Input Section
     with gr.Row():
