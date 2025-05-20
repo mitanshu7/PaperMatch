@@ -10,6 +10,7 @@ import torch
 from dotenv import dotenv_values
 from gradio_client import Client
 import ast
+from datetime import datetime
 
 ################################################################################
 # Configuration
@@ -19,6 +20,9 @@ LOCAL = False
 
 # Set to True if you want to use the fp32 embbedings or False if you want to use the binary embbedings
 FLOAT = False
+
+# Get current year
+current_year = str(datetime.now().year)
 
 # Define Milvus client
 milvus_client = MilvusClient("http://localhost:19530")
@@ -152,13 +156,24 @@ def embed(text:str) -> np.ndarray|bytes:
 ################################################################################
 # Single vector search
 
-def search(vector:np.ndarray, limit:int) -> list[dict]:
+def search(vector:np.ndarray, limit:int, filter:str="") -> list[dict]:
+
+    # Logic for converting the filter to a valid format
+    if filter == "This Year":
+        filter = f"year == {int(current_year)}"
+    elif filter == "Last 5 Years":
+        filter = f"year >= {int(current_year) - 5}"
+    elif filter == "Last 10 Years":
+        filter = f"year >= {int(current_year) - 10}"
+    elif filter == "All":
+        filter = ""
 
     result = milvus_client.search(
         collection_name="arxiv_abstracts", # Collection to search in
         data=[vector], # Vector to search for
         limit=limit, # Max. number of search results to return
-        output_fields=['id', 'vector', 'title', 'abstract', 'authors', 'categories', 'month', 'year', 'url'] # Output fields to return
+        output_fields=['id', 'vector', 'title', 'abstract', 'authors', 'categories', 'month', 'year', 'url'], # Output fields to return
+        filter=filter, # Filter to apply to the search
     )
 
     # returns a list of dictionaries with id and distance as keys
@@ -191,7 +206,7 @@ def fetch_all_details(search_results:list[dict]) -> str:
 ################################################################################
 
 # Function to handle the UI logic
-def predict(input_text:str, limit:int=5, increment:int=5) -> tuple[str, gr.update, int]:
+def predict(input_text:str, limit:int=5, increment:int=5, filter:str="") -> tuple[str, gr.update, int]:
 
     # Check if input is empty
     if input_text == "":
@@ -240,7 +255,7 @@ def predict(input_text:str, limit:int=5, increment:int=5) -> tuple[str, gr.updat
         abstract_vector = embed(input_text)
 
     # Search database
-    search_results = search(abstract_vector, limit)
+    search_results = search(abstract_vector, limit, filter)
 
     # Gather details about the found papers
     all_details = fetch_all_details(search_results)
@@ -337,6 +352,22 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
             show_label=False
         )
 
+    
+    with gr.Row():
+
+        # Add the date filter
+        with gr.Column(scale=4):
+            gr.Markdown("### Filter by Date")
+            date_filter = gr.Dropdown(
+                label="Select a year",
+                choices=["This Year", "Last 5 Years", "Last 10 Years", "All"],
+                value="All"
+            )
+
+        # # Add sorting options
+        # with gr.Column(scale=1):
+            
+
     # Define the initial page limit 
     page_limit = gr.State(5)
 
@@ -353,10 +384,13 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
     load_more_button = gr.Button("More results ⬇️", visible=False)
 
     # Event handler for the input text box, triggers the search function
-    input_text.submit(predict, [input_text, page_limit, increment], [output, load_more_button, new_page_limit])
+    input_text.submit(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, new_page_limit])
+
+    # Event handler for the date filter dropbox
+    date_filter.change(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, new_page_limit])
 
     # Event handler for the "Load More" button
-    load_more_button.click(predict, [input_text, new_page_limit, increment], [output, load_more_button, new_page_limit])
+    load_more_button.click(predict, [input_text, new_page_limit, increment, date_filter], [output, load_more_button, new_page_limit])
 
     # Example inputs
     gr.Examples(
