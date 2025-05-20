@@ -253,7 +253,7 @@ def predict(input_text, limit=5, increment=5):
 contact_text = """
 <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
     <h3>Crafted with ❤️ by <a href="https://www.linkedin.com/in/mitanshusukhwani/" target="_blank">Mitanshu Sukhwani</a></h3>
-    <h4>Discover more at <a href="https://papermatchbio.mitanshu.tech" target="_blank">PaperMatchBio</a></h4>
+    <h4>Discover more at <a href="https://bio.papermatch.me" target="_blank">PaperMatchBio</a></h4>
 </div>
 """
 
@@ -303,7 +303,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
                                     title='PaperMatch', css=style, analytics_enabled=False) as demo:
 
     # Title and description
-    gr.HTML('<h1><a href="https://papermatch.mitanshu.tech" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>')
+    gr.HTML('<h1><a href="https://papermatch.me" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>')
     gr.Markdown("### Discover Relevant Research, Instantly ⚡")
 
     # Input Section
