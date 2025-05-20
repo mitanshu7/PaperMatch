@@ -378,4 +378,4 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 
 if __name__ == "__main__":
     
-    demo.launch(ssr_mode=False, server_port=7870, node_port=7861, favicon_path='logo.png', show_api=False)
+    demo.launch(ssr_mode=False, server_port=7860, node_port=7861, favicon_path='logo.png', show_api=False)
