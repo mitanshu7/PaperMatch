@@ -195,7 +195,7 @@ def fetch_all_details(search_results:list[dict]) -> str:
 ## [{paper_details['title']}]({paper_details['url']})
 > **{paper_details['authors']}** | _{paper_details['month']} {paper_details['year']}_ \n
 {paper_details['abstract']} \n
-[OpenReview](https://duckduckgo.com/?q={paper_details['title'].replace(' ', '+')}+site:openreview.net)
+[OpenReview](https://duckduckgo.com/?q={paper_details['title'].replace(' ', '+')}+site:openreview.net)/[Google Scholar](https://scholar.google.com/scholar?q={paper_details['title'].replace(' ', '+')})
 ***
 """
     
@@ -337,7 +337,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
         # Add the date filter
         with gr.Column(scale=4):
             date_filter = gr.Dropdown(
-                label="Filter by Date",
+                label="Filter by Year",
                 choices=["This Year", "Last 5 Years", "Last 10 Years", "All"],
                 value="All",
                 visible=False
