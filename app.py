@@ -214,7 +214,8 @@ def predict(input_text:str, limit:int=5, increment:int=5, filter:str="") -> tupl
     
     # Define extra outputs to pass
     # This hack shows the load_more button once the search has been made
-    show_element = gr.update(visible=True)
+    show_load_more = gr.update(visible=True)
+    show_date_filter = gr.update(visible=True)
 
     # This variable is used to increment the search limit when the load_more button is clicked
     new_limit = limit+increment
@@ -260,7 +261,7 @@ def predict(input_text:str, limit:int=5, increment:int=5, filter:str="") -> tupl
     # Gather details about the found papers
     all_details = fetch_all_details(search_results)
         
-    return all_details, show_element, new_limit
+    return all_details, show_load_more, show_date_filter, new_limit
 
 ################################################################################
 
@@ -357,11 +358,11 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 
         # Add the date filter
         with gr.Column(scale=4):
-            gr.Markdown("### Filter by Date")
             date_filter = gr.Dropdown(
-                label="Select a year",
+                label="Filter by Date",
                 choices=["This Year", "Last 5 Years", "Last 10 Years", "All"],
-                value="All"
+                value="All",
+                visible=False
             )
 
         # # Add sorting options
@@ -384,19 +385,19 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
     load_more_button = gr.Button("More results ⬇️", visible=False)
 
     # Event handler for the input text box, triggers the search function
-    input_text.submit(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, new_page_limit])
+    input_text.submit(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, date_filter, new_page_limit])
 
     # Event handler for the date filter dropbox
-    date_filter.change(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, new_page_limit])
+    date_filter.change(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, date_filter, new_page_limit])
 
     # Event handler for the "Load More" button
-    load_more_button.click(predict, [input_text, new_page_limit, increment, date_filter], [output, load_more_button, new_page_limit])
+    load_more_button.click(predict, [input_text, new_page_limit, increment, date_filter], [output, load_more_button, date_filter, new_page_limit])
 
     # Example inputs
     gr.Examples(
         examples=examples, 
         inputs=input_text,
-        outputs=[output, load_more_button, new_page_limit],
+        outputs=[output, load_more_button, date_filter, new_page_limit],
         fn=predict,
         label="Try:",
         run_on_click=True,
