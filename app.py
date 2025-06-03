@@ -312,13 +312,36 @@ style = """
 }
 """
 
+# Markdown for about page
+about_markdown = """
+**PaperMatch** is a semantic search engine. Unlike regular search engines that match keywords in a query, semantic search engines convert text into vectors — essentially lists of numbers — using an *embedding model* (a type of neural network). These vectors aim to capture the **semantics** (meaning) of the text.
+
+Because numbers can be compared (`a > b`), we can **indirectly compare text** by comparing their corresponding vectors. This is the core idea behind PaperMatch.
+
+**PaperMatch** converts the abstract of an arXiv paper into a vector and performs a similarity search over a corpus of other papers.
+
+---
+
+## Guide to Using PaperMatch
+
+### 🔍 Search by arXiv ID
+
+* Enter the arXiv identifier (e.g., `1706.03762`) to search for similar papers.
+* You can also paste the full arXiv URL — PaperMatch will automatically extract the ID.
+
+### 📝 Search by Text
+
+* Enter natural language describing the kind of paper you're looking for.
+* Keep in mind: since the system matches by **semantics** (not keywords), exact terms may not appear in the results — it's the **meaning** that matters.
+"""
+
 ################################################################################
 # Create the Gradio interface
 with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"), 
                                     font_mono=gr.themes.GoogleFont("Roboto Mono")), 
                                     title='PaperMatch', css=style, analytics_enabled=False) as demo:
 
-    # Title and description
+    # Title and Subtitle
     gr.HTML('<h1><a href="https://papermatch.me" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>')
     gr.HTML('<h3> Discover Relevant Research, Instantly ⚡</h3>')
 
@@ -360,7 +383,7 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
     new_page_limit = gr.State(page_limit.value + increment.value)
 
     # Output section, displays the search results
-    output = gr.Markdown(label="Related Papers", latex_delimiters=[{ "left": "$", "right": "$", "display": False}])
+    output = gr.Markdown(label="Related Papers", latex_delimiters=[{ "left": "$", "right": "$", "display": False}], padding=True)
 
     # Hidden by default, appears after the first search
     load_more_button = gr.Button("More results ⬇️", visible=False)
@@ -389,6 +412,19 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
 
     # Attribution
     gr.HTML(contact_text)
+
+with demo.route("About", "/about"):
+
+    # Title and Subtitle
+    gr.HTML('<h1><a href="https://papermatch.me" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>')
+    gr.HTML('<h3> Discover Relevant Research, Instantly ⚡</h3>')
+
+    # The about text
+    gr.Markdown(about_markdown, padding=True)
+
+    # Attribution
+    gr.HTML(contact_text)
+
 
 ################################################################################
 
