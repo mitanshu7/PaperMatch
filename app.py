@@ -340,7 +340,10 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
                 label="Filter by Year",
                 choices=["This Year", "Last 5 Years", "Last 10 Years", "All"],
                 value="All",
-                visible=False
+                visible=False,
+                multiselect=False,
+                allow_custom_value=False,
+                filterable=False
             )
 
         # # Add sorting options
