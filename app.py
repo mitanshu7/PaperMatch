@@ -268,7 +268,7 @@ def predict(input_text:str, limit:int=5, increment:int=5, filter:str="") -> tupl
 # Variable to store contact information
 contact_text = """
 <div style="display: flex; justify-content: center; align-items: center; flex-direction: column;">
-    <h3>Crafted with ❤️ by <a href="https://www.linkedin.com/in/mitanshusukhwani/" target="_blank">Mitanshu Sukhwani</a></h3>
+    <h3>Crafted with ❤️ by <a href="https://mitanshu7.github.io" target="_blank">Mitanshu Sukhwani</a></h3>
     <h4>Discover more at <a href="https://bio.papermatch.me" target="_blank">PaperMatchBio</a></h4>
 </div>
 """
