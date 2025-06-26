@@ -389,13 +389,13 @@ with gr.Blocks(theme=gr.themes.Soft(font=gr.themes.GoogleFont("Helvetica"),
     load_more_button = gr.Button("More results ⬇️", visible=False)
 
     # Event handler for the input text box, triggers the search function
-    input_text.submit(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, date_filter, new_page_limit])
+    input_text.submit(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, date_filter, new_page_limit], api_name="search")
 
     # Event handler for the date filter dropbox
-    date_filter.change(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, date_filter, new_page_limit])
+    date_filter.change(predict, [input_text, page_limit, increment, date_filter], [output, load_more_button, date_filter, new_page_limit], api_name=False)
 
     # Event handler for the "Load More" button
-    load_more_button.click(predict, [input_text, new_page_limit, increment, date_filter], [output, load_more_button, date_filter, new_page_limit])
+    load_more_button.click(predict, [input_text, new_page_limit, increment, date_filter], [output, load_more_button, date_filter, new_page_limit], api_name=False)
 
     # Example inputs
     gr.Examples(
@@ -430,4 +430,4 @@ with demo.route("About", "/about"):
 
 if __name__ == "__main__":
     
-    demo.launch(ssr_mode=False, server_port=7860, node_port=7861, favicon_path='logo.png', show_api=False)
+    demo.launch(server_port=7860, favicon_path='logo.png', show_api=True, pwa=True)
