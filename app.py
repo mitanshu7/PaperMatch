@@ -430,4 +430,4 @@ with demo.route("About", "/about"):
 
 if __name__ == "__main__":
     
-    demo.launch(server_port=7860, favicon_path='logo.png', show_api=True, pwa=True)
+    demo.launch(server_port=7860, favicon_path='logo.png', show_api=False, pwa=True)
