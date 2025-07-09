@@ -82,23 +82,25 @@ Here is a basic example of how to use the search feature:
 1. Create folder using `mkdir -p ~/.config/systemd/user/` if it doesn't already exist.
 2. Create a service file using:
 `nano ~/.config/systemd/user/papermatch.service`
-with the following contents (assuming using *miniforge package manager* with env name `papermatch`):
+with the following contents (assuming using *uv package manager*):
 ```bash
 [Unit]
 Description=PaperMatch App
 After=network.target
 
 [Service]
-WorkingDirectory=/home/$USER/PaperMatch/
-ExecStart=/bin/bash -c "source /home/$USER/miniforge3/bin/activate papermatch && python app.py"
+WorkingDirectory=/home/mitanshu/PaperMatch/
+ExecStart=/home/mitanshu/.local/bin/uv run app.py
 Restart=always
 
 [Install]
 WantedBy=default.target
 ```
-2. Issue `systemctl --user daemon-reload` to reload systemd.
-3. Issue `systemctl --user start papermatch.service` to start the app.
-4. Issue `systemctl --user enable  papermatch.service` to enable app at start up.
+replace `mitanshu` with your `username`.
+
+1. Issue `systemctl --user daemon-reload` to reload systemd.
+2. Issue `systemctl --user start papermatch.service` to start the app.
+3. Issue `systemctl --user enable  papermatch.service` to enable app at start up.
 
 
 
