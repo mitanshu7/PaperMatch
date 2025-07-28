@@ -2,6 +2,7 @@
 import re
 from datetime import datetime
 from functools import cache
+from ast import literal_eval
 
 import arxiv
 import gradio as gr
@@ -15,17 +16,22 @@ from sentence_transformers import SentenceTransformer
 ################################################################################
 # Configuration
 
+# Import secrets
+config = dotenv_values(".env")
+
 # Set to True if you want to use local recources (cpu/gpu) or False if you want to use MixedBread.ai
-LOCAL = False
+LOCAL = literal_eval(config['LOCAL'])
 
 # Set to True if you want to use the fp32 embbedings or False if you want to use the binary embbedings
-FLOAT = False
+FLOAT = literal_eval(config['FLOAT'])
 
 # Get current year
 current_year = str(datetime.now().year)
 
 # Define Milvus client
-milvus_client = MilvusClient("http://localhost:19530")
+ENDPOINT = config['ENDPOINT']
+TOKEN = config['TOKEN']
+milvus_client = MilvusClient(uri=ENDPOINT, token=TOKEN)
 
 # Construct the Arxiv API client.
 arxiv_client = arxiv.Client(page_size=1, delay_seconds=1)
@@ -43,8 +49,6 @@ if LOCAL:
     model = SentenceTransformer(model_name).to(device)
 
 else:
-    # Import secrets
-    config = dotenv_values(".env")
 
     # Setup mxbai client
     mxbai_api_key = config["MXBAI_API_KEY"]
@@ -183,7 +187,7 @@ def search(vector: np.ndarray, limit: int, filter: str = "") -> list[dict]:
         filter = ""
 
     result = milvus_client.search(
-        collection_name="arxiv_abstracts",  # Collection to search in
+        collection_name="arxiv",  # Collection to search in
         data=[vector],  # Vector to search for
         limit=limit,  # Max. number of search results to return
         output_fields=[
@@ -252,7 +256,7 @@ def predict(
     # When arxiv id is found in input text
     if arxiv_id:
         # Search if id is already in database
-        id_in_db = milvus_client.get(collection_name="arxiv_abstracts", ids=[arxiv_id])
+        id_in_db = milvus_client.get(collection_name="arxiv", ids=[arxiv_id])
 
         # If the id is already in database
         if bool(id_in_db):
@@ -301,7 +305,7 @@ examples = ["2401.07215", "Smart TV and privacy"]
 
 # Show total number of entries in database
 num_entries = format(
-    milvus_client.get_collection_stats(collection_name="arxiv_abstracts")["row_count"],
+    milvus_client.get_collection_stats(collection_name="arxiv")["row_count"],
     ",",
 )
 
