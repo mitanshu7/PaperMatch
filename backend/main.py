@@ -72,7 +72,6 @@ def extract_arxiv_id_from_text(request: TextRequest) -> str | None:
 
 
 ################################################################################
-@app.get("/extract_arxiv_id_from_url/")
 def extract_arxiv_id_from_url(arxiv_url:str) -> str:
     
     id_with_version = arxiv_url.split('/')[-1]
@@ -82,7 +81,6 @@ def extract_arxiv_id_from_url(arxiv_url:str) -> str:
     return id
 
 # Function to search ArXiv by ID
-@app.get("/fetch_arxiv_by_id/{arxiv_id}")
 @backoff.on_exception(wait_gen=backoff.expo, exception=arxiv.HTTPError, max_tries=3, jitter=backoff.full_jitter)
 def fetch_arxiv_by_id(arxiv_id: str) -> ArxivPaper:
     # Search for the paper using the Arxiv API
