@@ -6,6 +6,7 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "arxiv>=2.2.0",
+    "backoff>=2.2.1",
     "fastapi[standard]>=0.115.14",
     "gradio>=5.35.0",
     "mixedbread>=0.17.0",
