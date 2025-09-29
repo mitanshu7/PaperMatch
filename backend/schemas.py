@@ -33,3 +33,6 @@ class ArxivPaper(BaseModel):
             raise ValueError(f"{value} is not an arxiv url")
             
         return value
+        
+class VectorRequest(BaseModel):
+    vector: list[int]

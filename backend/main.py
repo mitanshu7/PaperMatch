@@ -9,7 +9,7 @@ from dotenv import dotenv_values
 from mixedbread import Mixedbread
 from pymilvus import MilvusClient
 from fastapi import FastAPI
-from schemas import TextRequest, ArxivPaper
+from schemas import TextRequest, ArxivPaper, VectorRequest
 import backoff
 ################################################################################
 # Configuration
@@ -22,10 +22,14 @@ current_year = str(datetime.now().year)
 # Import secrets
 config = dotenv_values(".env")
 
-# Define Milvus client
-# ENDPOINT = config['ENDPOINT']
-# TOKEN = config['TOKEN']
-# milvus_client = MilvusClient(uri=ENDPOINT, token=TOKEN)
+# Connect to Zilliz via Milvus client
+ENDPOINT = config['ENDPOINT']
+TOKEN = config['TOKEN']
+milvus_client = MilvusClient(uri=ENDPOINT, token=TOKEN)
+
+# Setup search parameters
+COLLECTION_NAME = config["COLLECTION_NAME"]
+SEARCH_LIMIT = int(config["SEARCH_LIMIT"])
 
 # Setup mxbai client
 mxbai_api_key = config["MXBAI_API_KEY"]
@@ -103,16 +107,12 @@ def fetch_arxiv_by_id(arxiv_id: str) -> ArxivPaper:
 
 
 ################################################################################
-# Function to convert dense vector to binary vector
-def dense_to_binary(dense_vector: np.ndarray) -> bytes:
-    return np.packbits(np.where(dense_vector >= 0, 1, 0)).tobytes()
-
 
 # Function to embed text
+@app.post("/embed")
 @cache
-def embed(text: str) -> np.ndarray | bytes:
-
-
+def embed(text: str) :
+    
     # Call the MixedBread.ai API to generate the embedding
     result = mxbai.embed(
         model="mixedbread-ai/mxbai-embed-large-v1",
@@ -122,8 +122,8 @@ def embed(text: str) -> np.ndarray | bytes:
         dimensions=1024,
     )
 
-    # Convert the embedding to a numpy array of uint8 encoding and then to bytes
-    embedding = np.array(result.data[0].embedding, dtype=np.uint8).tobytes()
+    # Extract the embedding from the response
+    embedding = result.data[0].embedding
 
     return embedding
 
@@ -131,25 +131,18 @@ def embed(text: str) -> np.ndarray | bytes:
 ################################################################################
 # Single vector search
 
+@app.post("/search_by_vector")
+def search_by_vector(request: VectorRequest, filter: str="") -> list[dict]:
 
-def search(vector: np.ndarray, limit: int, filter: str = "") -> list[dict]:
-    # Logic for converting the filter to a valid format
-    if filter == "This Year":
-        filter = f"year == {int(current_year)}"
-    elif filter == "Last 5 Years":
-        filter = f"year >= {int(current_year) - 5}"
-    elif filter == "Last 10 Years":
-        filter = f"year >= {int(current_year) - 10}"
-    elif filter == "All":
-        filter = ""
+    # Convert the embedding to a numpy array of uint8 encoding and then to bytes
+    vector_bytes = np.array(request.vector, dtype=np.uint8).tobytes()
 
     result = milvus_client.search(
-        collection_name="arxiv",  # Collection to search in
-        data=[vector],  # Vector to search for
-        limit=limit,  # Max. number of search results to return
+        collection_name=COLLECTION_NAME,  # Collection to search in
+        data=[vector_bytes],  # Vector to search for
+        limit=SEARCH_LIMIT,  # Max. number of search results to return
         output_fields=[
             "id",
-            "vector",
             "title",
             "abstract",
             "authors",
