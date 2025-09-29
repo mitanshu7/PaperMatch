@@ -9,7 +9,7 @@ from dotenv import dotenv_values
 from mixedbread import Mixedbread
 from pymilvus import MilvusClient
 from fastapi import FastAPI
-from schemas import TextRequest, ArxivPaper, VectorRequest
+from schemas import TextRequest, ArxivPaper
 import backoff
 ################################################################################
 # Configuration
@@ -109,9 +109,8 @@ def fetch_arxiv_by_id(arxiv_id: str) -> ArxivPaper:
 ################################################################################
 
 # Function to embed text
-@app.post("/embed_text")
 @cache
-def embed_text(text: str) :
+def embed_text(text: str) -> bytes:
     
     # Call the MixedBread.ai API to generate the embedding
     result = mxbai.embed(
@@ -124,22 +123,22 @@ def embed_text(text: str) :
 
     # Extract the embedding from the response
     embedding = result.data[0].embedding
+    
+    # Convert the embedding to a numpy array of uint8 encoding and then to bytes
+    vector_bytes = np.array(embedding, dtype=np.uint8).tobytes()
 
-    return embedding
+    return vector_bytes
 
 
 ################################################################################
 # Single vector search
 
-@app.post("/search_by_vector")
-def search_by_vector(request: VectorRequest, filter: str="") -> list[dict]:
+def search_by_vector(vector: bytes, filter: str="") -> list[dict]:
 
-    # Convert the embedding to a numpy array of uint8 encoding and then to bytes
-    vector_bytes = np.array(request.vector, dtype=np.uint8).tobytes()
-
+    # Request zilliz for the vector search
     result = milvus_client.search(
         collection_name=COLLECTION_NAME,  # Collection to search in
-        data=[vector_bytes],  # Vector to search for
+        data=[vector],  # Vector to search for
         limit=SEARCH_LIMIT,  # Max. number of search results to return
         output_fields=[
             "id",
@@ -162,10 +161,35 @@ def search_by_text(text:str, filter: str="") -> list[dict]:
     
     embedding = embed_text(text)
     
-    request = VectorRequest.model_validate({"vector": embedding})
-    
-    results = search_by_vector(request=request, filter=filter)
+    results = search_by_vector(vector=embedding, filter=filter)
     
     return results
     
+@app.post("/search_by_id")
+def search_by_id(arxiv_id:str, filter: str="") -> list[dict]:
     
+    # Search if id is already in database
+    id_in_db = milvus_client.get(collection_name=COLLECTION_NAME, ids=[arxiv_id])
+    
+    
+    # If the id is already in database
+    if bool(id_in_db):
+        
+        # Get the bytes of a binary vector
+        embedding = id_in_db[0]["vector"][0]
+        
+        
+    
+    # If the id is not already in database
+    else:
+        
+        # Search arxiv for paper details
+        arxiv_paper = fetch_arxiv_by_id(arxiv_id)
+    
+        # Embed abstract
+        embedding = embed_text(arxiv_paper.abstract)
+        
+    
+    results = search_by_vector(vector=embedding, filter=filter)
+    
+    return results
