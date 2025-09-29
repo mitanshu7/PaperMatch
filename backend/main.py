@@ -109,9 +109,9 @@ def fetch_arxiv_by_id(arxiv_id: str) -> ArxivPaper:
 ################################################################################
 
 # Function to embed text
-@app.post("/embed")
+@app.post("/embed_text")
 @cache
-def embed(text: str) :
+def embed_text(text: str) :
     
     # Call the MixedBread.ai API to generate the embedding
     result = mxbai.embed(
@@ -157,3 +157,15 @@ def search_by_vector(request: VectorRequest, filter: str="") -> list[dict]:
     # returns a list of dictionaries with id and distance as keys
     return result[0]
 
+@app.post("/search_by_text")
+def search_by_text(text:str, filter: str="") -> list[dict]:
+    
+    embedding = embed_text(text)
+    
+    request = VectorRequest.model_validate({"vector": embedding})
+    
+    results = search_by_vector(request=request, filter=filter)
+    
+    return results
+    
+    
