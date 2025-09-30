@@ -163,7 +163,21 @@ def search_by_text(text:str, filter: str="") -> list[dict]:
     
     return results
     
-@app.post("/search_by_id")
+@app.get("/search_by_known_id/{arxiv_id}")
+def search_by_known_id(arxiv_id:str, filter: str="") -> list[dict]:
+    
+    # Get the id which is already in database
+    id_in_db = milvus_client.get(collection_name=COLLECTION_NAME, ids=[arxiv_id])
+        
+    # Get the bytes of a binary vector
+    embedding = id_in_db[0]["vector"][0]
+    
+    # Run similarity search
+    results = search_by_vector(vector=embedding, filter=filter)
+    
+    return results
+    
+@app.get("/search_by_id/{arxiv_id}")
 def search_by_id(arxiv_id:str, filter: str="") -> list[dict]:
     
     # Search if id is already in database
