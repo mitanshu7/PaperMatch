@@ -8,6 +8,7 @@ import backoff
 import numpy as np
 from dotenv import dotenv_values
 from fastapi import FastAPI
+from fastapi.middleware.cors import CORSMiddleware
 from mixedbread import Mixedbread
 from pymilvus import MilvusClient
 from schemas import ArxivPaper, TextRequest
@@ -16,6 +17,16 @@ from schemas import ArxivPaper, TextRequest
 # Configuration
 
 app = FastAPI()
+
+# TODO: MAKE IT SECURE
+# Allow frontend to talk to backend
+app.add_middleware(
+    CORSMiddleware,
+    allow_origins=["*"],  # or ["http://localhost:5500"] if serving static files
+    allow_credentials=True,
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 # Get current year
 current_year = str(datetime.now().year)
