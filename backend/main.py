@@ -206,7 +206,20 @@ def search_by_id(arxiv_id:str, filter: str="") -> list[dict]:
     
     return results
     
-# @app.post("/search")
-# def search(text:str, filter:str="") -> list[dict]:
+@app.post("/search")
+def search(request: TextRequest) -> list[dict]:
     
+    text = request.text
+    filter = request.filter
     
+    id_in_text = extract_arxiv_id_from_text(text)
+    
+    if id_in_text:
+        
+        results = search_by_id(id_in_text, filter)
+        
+    else:
+        
+        results = search_by_text(request)
+    
+    return results
