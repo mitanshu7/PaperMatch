@@ -1,7 +1,0 @@
-torch
-sentence-transformers
-pymilvus
-gradio
-arxiv
-python-dotenv
-gradio-client
