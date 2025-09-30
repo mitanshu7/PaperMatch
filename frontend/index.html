@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Simple Search Engine</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+</head>
+<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
+  <h1 class="text-3xl font-bold mb-6">🔍 Simple Search</h1>
+
+  <!-- Search Box -->
+  <div class="w-full max-w-xl flex">
+    <textarea
+      id="searchInput"
+      rows="3"
+      placeholder="Paste your text or type to search..."
+      class="flex-grow p-3 rounded-l-2xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
+    ></textarea>
+    <button
+      id="searchBtn"
+      class="px-6 bg-blue-600 text-white font-semibold rounded-r-2xl hover:bg-blue-700"
+    >
+      Search
+    </button>
+  </div>
+
+  <!-- Results -->
+  <div id="results" class="mt-8 w-full max-w-xl space-y-4"></div>
+
+  <script>
+    const searchBtn = document.getElementById("searchBtn");
+    const searchInput = document.getElementById("searchInput");
+    const resultsDiv = document.getElementById("results");
+
+    async function performSearch() {
+      const query = searchInput.value.trim();
+      if (!query) return;
+
+      resultsDiv.innerHTML = `<p class="text-gray-500">Searching...</p>`;
+
+      try {
+        const res = await fetch("http://localhost:8000/search", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+              text: query,
+              filter: "" // optional, you can hook this up to a UI control later
+            })
+          });
+
+
+        const data = await res.json();
+
+        if (Array.isArray(data) && data.length > 0) {
+              resultsDiv.innerHTML = data
+                .map(
+                  r => `
+                  <div class="p-4 bg-white shadow rounded-2xl">
+                    <a href="${r.entity.url}" target="_blank" 
+                       class="text-blue-600 font-semibold text-lg hover:underline">
+                       ${r.entity.title}
+                    </a>
+                    <p class="text-gray-700 mt-1">${r.entity.abstract.slice(0, 300)}...</p>
+                    <p class="text-sm text-gray-500 mt-2">
+                      <span class="font-medium">Authors:</span> ${r.entity.authors}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                      <span class="font-medium">Categories:</span> ${r.entity.categories}
+                    </p>
+                    <p class="text-sm text-gray-500">
+                      ${r.entity.month} ${r.entity.year}
+                    </p>
+                  </div>`
+                )
+                .join("");
+            } else {
+              resultsDiv.innerHTML = `<p class="text-gray-500">No results found.</p>`;
+            }
+          } catch (err) {
+            console.error(err);
+            resultsDiv.innerHTML = `<p class="text-red-500">Error fetching results.</p>`;
+          }
+        }
+
+    searchBtn.addEventListener("click", performSearch);
+    searchInput.addEventListener("keydown", e => {
+      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
+        performSearch();
+      }
+    });
+  </script>
+</body>
+</html>
