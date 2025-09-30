@@ -2,6 +2,7 @@
 import re
 from datetime import datetime
 from functools import cache
+from typing import Required
 
 import arxiv
 import numpy as np
@@ -53,12 +54,8 @@ post_2007_pattern = re.compile(
 ################################################################################
 
 # Function to extract arXiv ID from a given text
-@app.post("/extract_arxiv_id_from_text")
-def extract_arxiv_id_from_text(request: TextRequest) -> str | None:
+def extract_arxiv_id_from_text(text:str) -> str | None:
     
-    # Extract the text form the request
-    text = request.text
-
     # Search for matches
     pre_match = pre_2007_pattern.search(text)
     post_match = post_2007_pattern.search(text)
@@ -155,7 +152,10 @@ def search_by_vector(vector: bytes, filter: str="") -> list[dict]:
     return result[0]
 
 @app.post("/search_by_text")
-def search_by_text(text:str, filter: str="") -> list[dict]:
+def search_by_text(request: TextRequest) -> list[dict]:
+    
+    text = request.text
+    filter = request.filter
     
     embedding = embed_text(text)
     
@@ -205,3 +205,8 @@ def search_by_id(arxiv_id:str, filter: str="") -> list[dict]:
     results = search_by_vector(vector=embedding, filter=filter)
     
     return results
+    
+# @app.post("/search")
+# def search(text:str, filter:str="") -> list[dict]:
+    
+    

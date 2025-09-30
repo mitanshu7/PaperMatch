@@ -6,6 +6,7 @@ from datetime import datetime
 # Create a request model
 class TextRequest(BaseModel):
     text: str
+    filter: str = ""
 
 
 arxiv_url_regex = re.compile(r".+arxiv\.org.+")
