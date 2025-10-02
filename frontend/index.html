@@ -1,94 +1,51 @@
 <!DOCTYPE html>
+
 <html lang="en">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Simple Search Engine</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-</head>
-<body class="bg-gray-100 min-h-screen flex flex-col items-center p-6">
-  <h1 class="text-3xl font-bold mb-6">🔍 Simple Search</h1>
 
-  <!-- Search Box -->
-  <div class="w-full max-w-xl flex">
-    <textarea
-      id="searchInput"
-      rows="3"
-      placeholder="Paste your text or type to search..."
-      class="flex-grow p-3 rounded-l-2xl border border-gray-300 focus:ring-2 focus:ring-blue-500 outline-none resize-none"
-    ></textarea>
-    <button
-      id="searchBtn"
-      class="px-6 bg-blue-600 text-white font-semibold rounded-r-2xl hover:bg-blue-700"
-    >
-      Search
-    </button>
-  </div>
+  <head>
 
-  <!-- Results -->
-  <div id="results" class="mt-8 w-full max-w-xl space-y-4"></div>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    
+    <title>PaperMatch</title>
+    
+    
+    
+    <link href="styles/style.css" rel="stylesheet"/>
 
-  <script>
-    const searchBtn = document.getElementById("searchBtn");
-    const searchInput = document.getElementById("searchInput");
-    const resultsDiv = document.getElementById("results");
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.css" integrity="sha384-5TcZemv2l/9On385z///+d7MSYlvIEw9FuZTIdZ14vJLqWphw7e7ZPuOiCHJcFCP" crossorigin="anonymous">
 
-    async function performSearch() {
-      const query = searchInput.value.trim();
-      if (!query) return;
+    <!-- The loading of KaTeX is deferred to speed up page rendering -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/katex.min.js" integrity="sha384-cMkvdD8LoxVzGF/RPUKAcvmm49FQ0oxwDF3BGKtDXcEc+T1b2N+teh/OJfpU0jr6" crossorigin="anonymous"></script>
 
-      resultsDiv.innerHTML = `<p class="text-gray-500">Searching...</p>`;
+    <!-- To automatically render math in text elements, include the auto-render extension: -->
+    <script defer src="https://cdn.jsdelivr.net/npm/katex@0.16.22/dist/contrib/auto-render.min.js" integrity="sha384-hCXGrW6PitJEwbkoStFjeJxv+fSOOQKOPbJxSfM6G5sWZjAyWhXiTIIAmQqnlLlh" crossorigin="anonymous"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Prop+Single+Ink:wght@100..900&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Roboto:ital,wght@0,100..900;1,100..900&display=swap" rel="stylesheet">  
+  
+    <script async src="scripts/script.js"></script>
 
-      try {
-        const res = await fetch("http://localhost:8000/search", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-              text: query,
-              filter: "" // optional, you can hook this up to a UI control later
-            })
-          });
+  </head>
+
+  <body>
+
+    <h1 id="site_title">PaperMatch</h1>
+    <h2 id="site_subtitle"> Discover Relevant Research, Instantly ⚡</h2>
+
+    <div id="input">
+        <form action="#">
+            <input type="text" class="search-input" placeholder="Search arXiv">
+            <p></p>
+            <button type="submit" class="search-button">Search</button>
+        </form>
+    </div>
+
+    <div id="results"></div>
 
 
-        const data = await res.json();
 
-        if (Array.isArray(data) && data.length > 0) {
-              resultsDiv.innerHTML = data
-                .map(
-                  r => `
-                  <div class="p-4 bg-white shadow rounded-2xl">
-                    <a href="${r.entity.url}" target="_blank" 
-                       class="text-blue-600 font-semibold text-lg hover:underline">
-                       ${r.entity.title}
-                    </a>
-                    <p class="text-gray-700 mt-1">${r.entity.abstract.slice(0, 300)}...</p>
-                    <p class="text-sm text-gray-500 mt-2">
-                      <span class="font-medium">Authors:</span> ${r.entity.authors}
-                    </p>
-                    <p class="text-sm text-gray-500">
-                      <span class="font-medium">Categories:</span> ${r.entity.categories}
-                    </p>
-                    <p class="text-sm text-gray-500">
-                      ${r.entity.month} ${r.entity.year}
-                    </p>
-                  </div>`
-                )
-                .join("");
-            } else {
-              resultsDiv.innerHTML = `<p class="text-gray-500">No results found.</p>`;
-            }
-          } catch (err) {
-            console.error(err);
-            resultsDiv.innerHTML = `<p class="text-red-500">Error fetching results.</p>`;
-          }
-        }
+  </body>
 
-    searchBtn.addEventListener("click", performSearch);
-    searchInput.addEventListener("keydown", e => {
-      if (e.key === "Enter" && (e.ctrlKey || e.metaKey)) {
-        performSearch();
-      }
-    });
-  </script>
-</body>
 </html>

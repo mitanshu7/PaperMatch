@@ -1,0 +1,83 @@
+
+
+#site_title {
+    text-align: center;
+    color: #6366f1;
+}
+
+#site_subtitle {
+    text-align: center;
+}
+
+#results_title {
+    color: #6366f1;
+}
+
+body {
+    background-color: #f9fafb;
+}
+
+html {
+    font-family: Inter;
+}
+
+textarea{
+
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+button {
+
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+}
+
+body {
+      margin: 0 auto;
+      max-width: 50em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+}
+
+/* From
+https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-to-the-search-bar-with-css */
+
+/* Styling for the search container */
+.search-container {
+    text-align: center;
+    margin-top: 20px;
+}
+/* Styling for the search input */
+.search-input {
+    padding: 10px;
+    border-radius: 20px;
+    border: 2px solid #ccc;
+    width: 400px;
+    margin: auto;
+    display: block;
+}
+/* Styling for the search button */
+.search-button {
+    padding: 10px 20px;
+    border-radius: 20px;
+    border: 2px solid #ccc;
+    background-color: #f0f0f0;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: auto;
+    display: block;
+}
+/* Styling for the search button on hover */
+.search-button:hover {
+    background-color: #e0e0e0;
+}
