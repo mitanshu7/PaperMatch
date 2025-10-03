@@ -1,13 +1,13 @@
-const myButton = document.querySelector("button")
+const myButton = document.getElementById("search-button")
 
-const myTextArea = document.querySelector("input")
+const myTextArea = document.getElementById("search-input")
 
 const myDiv = document.getElementById("results")
 
 const myURL = "http://0.0.0.0:8000"
 
 function search_by_id() {
-    arxiv_id = myTextArea.value
+    const arxiv_id = myTextArea.value.trim()
 
     myDiv.innerHTML = `<p class="text-gray-500">Searching...</p>`;
 
@@ -57,3 +57,15 @@ function search_by_id() {
     }
 
 myButton.addEventListener("click", search_by_id)
+
+// From https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp
+// Execute a function when the user presses a key on the keyboard
+myTextArea.addEventListener("keydown", function(event) {
+  // If the user presses the "Enter" key on the keyboard
+  if (event.key === "Enter" && !event.shiftKey) {
+    // Cancel the default action, if needed
+    event.preventDefault();
+    // Trigger the button element with a click
+    myButton.click();
+  }
+}); 
