@@ -4,15 +4,16 @@ const myTextArea = document.getElementById("search-input")
 
 const myDiv = document.getElementById("results")
 
-const myURL = "http://0.0.0.0:8000"
+const myURL = "http://0.0.0.0:8000/search_by_id/"
 
 function search_by_id() {
     const arxiv_id = myTextArea.value.trim()
 
-    myDiv.innerHTML = `<p class="text-gray-500">Searching...</p>`;
+    myDiv.innerHTML = `<p></p>
+                      <div id="loader"></div>`;
 
     // Call `fetch()`, passing in the URL.
-    fetch("http://0.0.0.0:8000/search_by_id/"  + arxiv_id)
+    fetch(myURL  + arxiv_id)
     // fetch() returns a promise. When we have received a response from the server,
     // the promise's `then()` handler is called with the response.
     .then((response) => {
