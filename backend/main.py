@@ -2,11 +2,12 @@
 import re
 from datetime import datetime
 from functools import cache
+import os
 
 import arxiv
 import backoff
 import numpy as np
-from dotenv import dotenv_values
+from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mixedbread import Mixedbread
@@ -32,19 +33,19 @@ app.add_middleware(
 current_year = str(datetime.now().year)
 
 # Import secrets
-config = dotenv_values(".env")
+load_dotenv()
 
 # Connect to Zilliz via Milvus client
-ENDPOINT = config["ENDPOINT"]
-TOKEN = config["TOKEN"]
+ENDPOINT = os.getenv("ENDPOINT")
+TOKEN = os.getenv("TOKEN")
 milvus_client = MilvusClient(uri=ENDPOINT, token=TOKEN)
 
 # Setup search parameters
-COLLECTION_NAME = config["COLLECTION_NAME"]
-SEARCH_LIMIT = int(config["SEARCH_LIMIT"])
+COLLECTION_NAME = os.getenv("COLLECTION_NAME")
+SEARCH_LIMIT = int(os.getenv("SEARCH_LIMIT"))
 
 # Setup mxbai client
-mxbai_api_key = config["MXBAI_API_KEY"]
+mxbai_api_key = os.getenv("MXBAI_API_KEY")
 mxbai = Mixedbread(api_key=mxbai_api_key)
 
 # Construct the Arxiv API client.
