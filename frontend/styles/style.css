@@ -5,6 +5,10 @@
     color: #6366f1;
 }
 
+#site_title_link{
+    text-decoration: none;
+}
+
 #site_subtitle {
     text-align: center;
 }
@@ -108,4 +112,10 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 }
 @keyframes l13{ 
   100%{transform: rotate(1turn)}
+}
+
+/*From https://stackoverflow.com/questions/14920401/how-to-simulate-hfill-with-html-and-css*/
+.hfill {
+    display: flex;
+    justify-content: space-between;
 }
