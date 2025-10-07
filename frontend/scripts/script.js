@@ -106,6 +106,7 @@ function search_by_id() {
   arxiv_id = query_parameters.split("=")[1]
   console.log(arxiv_id)
   
+  // TODO check https://stackoverflow.com/questions/10691316/javascript-empty-string-comparison
   if (query_parameters !='') {
       search(arxiv_id)
     }

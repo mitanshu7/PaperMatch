@@ -5,6 +5,7 @@
     color: #6366f1;
 }
 
+/*From https://www.freecodecamp.org/news/remove-underline-from-link-in-css/ */
 #site_title_link{
     text-decoration: none;
 }
