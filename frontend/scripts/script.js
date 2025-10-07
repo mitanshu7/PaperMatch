@@ -13,6 +13,7 @@ const search_url = "http://0.0.0.0:8000/search"
 //  Function to perform the search and modify div to render html
 function search(text) {
 
+    // Show a spinning circle till the results load
     myDiv.innerHTML = `<p></p>
                       <div id="loader"></div>`;
 
@@ -100,16 +101,21 @@ myTextArea.addEventListener("input", resize)
 
 // Search by url query
 function search_by_id() {
-  query_parameters = window.location.search
+  
+  const textarea_input = myTextArea.value.trim()
+  console.log(textarea_input)
+  
+  const query_parameters = window.location.search
   console.log(query_parameters)
   
-  arxiv_id = query_parameters.split("=")[1]
+  const arxiv_id = query_parameters.split("=")[1]
   console.log(arxiv_id)
   
   // TODO check https://stackoverflow.com/questions/10691316/javascript-empty-string-comparison
-  if (query_parameters !='') {
+  if ((query_parameters !='') && (textarea_input =='')) {
       search(arxiv_id)
     }
   }
-  
+
+// Run on page load
 search_by_id()
