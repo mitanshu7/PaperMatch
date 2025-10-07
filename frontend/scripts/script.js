@@ -70,3 +70,11 @@ myTextArea.addEventListener("keydown", function(event) {
     myButton.click();
   }
 }); 
+
+// From https://stackoverflow.com/questions/2803880/is-there-a-way-to-get-a-textarea-to-stretch-to-fit-its-content-without-using-php
+// Resize textarea
+function resize() {
+  myTextArea.style.height = "";
+  myTextArea.style.height = myTextArea.scrollHeight + "px"
+}
+myTextArea.addEventListener("input", resize)

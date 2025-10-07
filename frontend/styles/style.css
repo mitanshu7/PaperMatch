@@ -60,6 +60,7 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
     display: block;
     outline: none;
     resize: none;
+    overflow: hidden;
 }
 
 /* Styling for the search input on hover */
