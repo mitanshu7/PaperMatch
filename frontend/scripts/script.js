@@ -4,30 +4,32 @@ const myTextArea = document.getElementById("search-input")
 
 const myDiv = document.getElementById("results")
 
-const myURL = "http://0.0.0.0:8000/search_by_id/"
+const myURL = "http://0.0.0.0:8000/search"
 
 function search_by_id() {
-    const arxiv_id = myTextArea.value.trim()
+    const input_text = myTextArea.value.trim()
 
     myDiv.innerHTML = `<p></p>
                       <div id="loader"></div>`;
 
-    // Call `fetch()`, passing in the URL.
-    fetch(myURL  + arxiv_id)
-    // fetch() returns a promise. When we have received a response from the server,
-    // the promise's `then()` handler is called with the response.
+    // From https://www.freecodecamp.org/news/javascript-post-request-how-to-send-an-http-post-request-in-js/
+    fetch(myURL, {
+      method: "POST",
+      body: JSON.stringify({
+        text: input_text,
+        filter: "",
+      }),
+      headers: {
+        "Content-type": "application/json; charset=UTF-8"
+      }
+    })
     .then((response) => {
-        // Our handler throws an error if the request did not succeed.
         if (!response.ok) {
         throw new Error(`HTTP error: ${response.status}`);
         }
-        // Otherwise (if the response succeeded), our handler fetches the response
-        // as text by calling response.text(), and immediately returns the promise
-        // returned by `response.text()`.
+
         return response.json();
     })
-    // When response.text() has succeeded, the `then()` handler is called with
-    // the text, and we copy it into the `poemDisplay` box.
     .then((json) => {
         myDiv.innerHTML = json.map(result => `
                     <div>
