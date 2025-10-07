@@ -1,22 +1,26 @@
+// Search button
 const myButton = document.getElementById("search-button")
 
+// Search input
 const myTextArea = document.getElementById("search-input")
 
+// Search results
 const myDiv = document.getElementById("results")
 
-const myURL = "http://0.0.0.0:8000/search"
+// Search url
+const search_url = "http://0.0.0.0:8000/search"
 
-function search_by_id() {
-    const input_text = myTextArea.value.trim()
+//  Function to perform the search and modify div to render html
+function search(text) {
 
     myDiv.innerHTML = `<p></p>
                       <div id="loader"></div>`;
 
     // From https://www.freecodecamp.org/news/javascript-post-request-how-to-send-an-http-post-request-in-js/
-    fetch(myURL, {
+    fetch(search_url, {
       method: "POST",
       body: JSON.stringify({
-        text: input_text,
+        text: text,
         filter: "",
       }),
       headers: {
@@ -36,10 +40,14 @@ function search_by_id() {
                     <a href="${result.entity.url}" target="_blank">
                        <h2 id="results_title"> ${result.entity.title} </h2>
                     </a>
-                    <b> ${result.entity.authors} </b>  | <i>${result.entity.month} ${result.entity.year}</i>
-                    <p>${result.entity.abstract}...</p>
+                    <p class="hfill">
+                    <b> ${result.entity.authors} </b> <i>${result.entity.month} ${result.entity.year}</i>
+                    </p>
                     <p>
-                    <em>${result.entity.categories}</em>
+                    ${result.entity.abstract}...
+                    </p>
+                    <p class="hfill">
+                    <em>${result.entity.categories}</em> <a href="?arxiv_id=${result.entity.id}"> <b id="results_title"> Search Similar </b></a>
                     </p>
 
                     </div>`).join("");
@@ -59,7 +67,16 @@ function search_by_id() {
     });
     }
 
-myButton.addEventListener("click", search_by_id)
+function perform_search(){
+  const input_text = myTextArea.value.trim()
+  console.log(input_text)
+  
+  if (input_text !=''){
+    search(input_text)
+  }
+  
+}
+myButton.addEventListener("click", perform_search)
 
 // From https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp
 // Execute a function when the user presses a key on the keyboard
@@ -80,3 +97,18 @@ function resize() {
   myTextArea.style.height = myTextArea.scrollHeight + "px"
 }
 myTextArea.addEventListener("input", resize)
+
+// Search by url query
+function search_by_id() {
+  query_parameters = window.location.search
+  console.log(query_parameters)
+  
+  arxiv_id = query_parameters.split("=")[1]
+  console.log(arxiv_id)
+  
+  if (query_parameters !='') {
+      search(arxiv_id)
+    }
+  }
+  
+search_by_id()
