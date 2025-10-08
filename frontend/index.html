@@ -49,11 +49,21 @@
     <h3 id="site_subtitle"> Discover Relevant Research, Instantly ⚡</h3>
 
     <div id="input">
-        <form class="search-container" action="#">
-            <textarea type="text" id="search-input" placeholder="Search arXiv" autofocus ></textarea>
-            <p></p>
+        <div class="search-container">
+            <p>
+                <textarea type="text" id="search-input" placeholder="Search arXiv" autofocus ></textarea>
+            </p>
+            <p>
+                <!--<label for="year_filter">Filter by year:</label>-->
+                
+                <select name="year_filter" id="year_filter">
+                </select>
+            </p>
+                
+            <p>
             <button type="submit" id="search-button">Search</button>
-        </form>
+            </p>
+        </div>
     </div>
 
     <div id="results"></div>

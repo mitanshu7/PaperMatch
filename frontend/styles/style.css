@@ -50,7 +50,7 @@ body {
 https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-to-the-search-bar-with-css */
 
 /* Styling for the search container */
-#search-container {
+.search-container {
     text-align: center;
     margin-top: 20px;
 }
@@ -78,6 +78,24 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 
 #search-input:hover {
     box-shadow: rgba(50, 51, 51, 0.2) 0px 2px 4px 1px;
+}
+
+/* Styling for the filter dropdown */
+#year_filter {
+    padding: 5px 10px;
+    border-radius: 20px;
+    border: 2px solid #ccc;
+    background-color: #f0f0f0;
+    color: #333;
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: auto;
+    display: block;
+}
+
+/* Styling for the filter dropdown on hover */
+#year_filter:hover {
+    background-color: #e0e0e0;
 }
 
 /* Styling for the search button */

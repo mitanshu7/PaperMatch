@@ -4,14 +4,29 @@ const myButton = document.getElementById("search-button")
 // Search input
 const myTextArea = document.getElementById("search-input")
 
+const myDropdown = document.getElementById("year_filter")
+
 // Search results
 const myDiv = document.getElementById("results")
 
 // Search url
 const search_url = "http://0.0.0.0:8000/search"
 
+// get current year
+// https://stackoverflow.com/questions/4562587/shortest-way-to-print-current-year-in-a-website
+const currentYear = new Date().getFullYear();
+
+// Update the dropdown options
+const yearDropdown = document.getElementById("year_filter");
+yearDropdown.innerHTML = `
+    <option value="" selected>All years</option>
+    <option value="year == ${currentYear}">This year</option>
+    <option value="year >= ${currentYear - 5}">Last 5 years</option>
+    <option value="year >= ${currentYear - 10}">Last 10 years</option>
+`;
+
 //  Function to perform the search and modify div to render html
-function search(text) {
+function search(text, filter) {
 
     // Show a spinning circle till the results load
     myDiv.innerHTML = `<p></p>
@@ -22,7 +37,7 @@ function search(text) {
       method: "POST",
       body: JSON.stringify({
         text: text,
-        filter: "",
+        filter: filter,
       }),
       headers: {
         "Content-type": "application/json; charset=UTF-8"
@@ -68,15 +83,27 @@ function search(text) {
     });
     }
 
-function perform_search(){
+function perform_search(event){
+  
+  // Cancel the default action, if needed
+  // This prevents adding ?year_filter= in the url
+  event.preventDefault();
+  
   const input_text = myTextArea.value.trim()
+  console.log("input_text")
   console.log(input_text)
   
+  const input_filter = myDropdown.options[myDropdown.selectedIndex].value
+  console.log("input_filter")
+  console.log(input_filter)
+  
   if (input_text !=''){
-    search(input_text)
+    search(input_text, input_filter)
   }
   
 }
+
+// Perform search when user click on the button
 myButton.addEventListener("click", perform_search)
 
 // From https://www.w3schools.com/howto/howto_js_trigger_button_enter.asp
@@ -103,19 +130,37 @@ myTextArea.addEventListener("input", resize)
 function search_by_id() {
   
   const textarea_input = myTextArea.value.trim()
+  console.log("textarea_input")
   console.log(textarea_input)
   
   const query_parameters = window.location.search
+  console.log("query_parameters")
   console.log(query_parameters)
   
-  const arxiv_id = query_parameters.split("=")[1]
+  // Use URLSearchParams to properly parse query parameters
+  const urlParams = new URLSearchParams(query_parameters)
+  const arxiv_id = urlParams.get('arxiv_id')
+  console.log("arxiv_id")
   console.log(arxiv_id)
   
+  const filter = urlParams.get('filter')
+  console.log("filter")
+  console.log(filter)
+  
   // TODO check https://stackoverflow.com/questions/10691316/javascript-empty-string-comparison
-  if ((query_parameters !='') && (textarea_input =='')) {
-      search(arxiv_id)
+  if (arxiv_id != null) {
+    
+    // if url also has a filter, then use it
+    // http://localhost:8080/?arxiv_id=2401.07215&filter=year==2025 works
+    if (filter != null) {
+      search(arxiv_id, filter)
+    }
+    // else use no filter
+    else {
+      search(arxiv_id, "")
     }
   }
+}
 
 // Run on page load
 search_by_id()
