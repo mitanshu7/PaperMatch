@@ -156,3 +156,7 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
     display: flex;
     justify-content: space-between;
 }
+
+#result_abstract {
+    font-family: Marcellus;
+}
