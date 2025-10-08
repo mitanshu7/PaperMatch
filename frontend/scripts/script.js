@@ -4,6 +4,13 @@ const myButton = document.getElementById("search-button")
 // Search input
 const myTextArea = document.getElementById("search-input")
 
+// Huddingface dataset url
+const dataset_url = "https://datasets-server.huggingface.co/info?dataset=bluuebunny%2Farxiv_abstract_embedding_mxbai_large_v1_milvus_binary"
+
+// Add total papers availabe to search from arXiv
+fetch(dataset_url).then(response => response.json()).then(result => myTextArea.placeholder = `Search ${result.dataset_info.default.splits.train.num_examples} papers from arXiv`)
+
+// Year filte dropdown menu
 const myDropdown = document.getElementById("year_filter")
 
 // Search results
