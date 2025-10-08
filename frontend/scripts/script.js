@@ -157,6 +157,9 @@ function search_by_id() {
   // TODO check https://stackoverflow.com/questions/10691316/javascript-empty-string-comparison
   if (arxiv_id != null) {
     
+    // reflect arxiv id on textarea
+    myTextArea.value = arxiv_id
+    
     // if url also has a filter, then use it
     // http://localhost:8080/?arxiv_id=2401.07215&filter=year==2025 works
     if (filter != null) {
