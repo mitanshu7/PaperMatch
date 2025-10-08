@@ -68,7 +68,7 @@ function search(text, filter) {
                     <b> ${result.entity.authors} </b> <i>${result.entity.month} ${result.entity.year}</i>
                     </p>
                     <p>
-                    ${result.entity.abstract}...
+                    ${result.entity.abstract}
                     </p>
                     <p class="hfill">
                     <em>${result.entity.categories}</em> <a href="?arxiv_id=${result.entity.id}"> <b id="results_title"> Search Similar </b></a>
