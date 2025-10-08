@@ -1,6 +1,9 @@
 // Search button
 const myButton = document.getElementById("search-button")
 
+// tip
+myTip = document.getElementById("tip")
+
 // Search input
 const myTextArea = document.getElementById("search-input")
 
@@ -17,7 +20,7 @@ const myDropdown = document.getElementById("year_filter")
 const myDiv = document.getElementById("results")
 
 // Search url
-const search_url = "http://api.papermatch.me/search"
+const search_url = "https://api.papermatch.me/search"
 
 // get current year
 // https://stackoverflow.com/questions/4562587/shortest-way-to-print-current-year-in-a-website
@@ -35,6 +38,9 @@ yearDropdown.innerHTML = `
 
 //  Function to perform the search and modify div to render html
 function search(text, filter) {
+  
+    // Hide tip on search
+    myTip.innerHTML = ""
 
     // Show a spinning circle till the results load
     myDiv.innerHTML = `<p></p>
