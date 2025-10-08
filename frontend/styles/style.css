@@ -1,14 +1,19 @@
 #about_title_index {
     text-align: right;
     color: #6366f1;
+    font-family: Special Elite;
+
 }
 #about_title_about {
     text-align: right;
+    font-family: Special Elite;
 }
 
 #site_title {
     text-align: center;
     color: #6366f1;
+    font-family: Special Elite;
+    font-size: 48px;
 }
 
 /*From https://www.freecodecamp.org/news/remove-underline-from-link-in-css/ */
@@ -18,6 +23,7 @@
 
 #site_subtitle {
     text-align: center;
+    font-family: Special Elite;
 }
 
 #results_title {
@@ -29,7 +35,7 @@ body {
 }
 
 html {
-    font-family: Atkinson Hyperlegible Next;
+    font-family: Inter;
 }
 
 button {
