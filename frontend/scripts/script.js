@@ -8,7 +8,7 @@ const myTextArea = document.getElementById("search-input")
 const dataset_url = "https://datasets-server.huggingface.co/info?dataset=bluuebunny%2Farxiv_abstract_embedding_mxbai_large_v1_milvus_binary"
 
 // Add total papers availabe to search from arXiv
-fetch(dataset_url).then(response => response.json()).then(result => myTextArea.placeholder = `Search ${result.dataset_info.default.splits.train.num_examples} papers from arXiv`)
+fetch(dataset_url).then(response => response.json()).then(result => myTextArea.placeholder = `Search ${result.dataset_info.default.splits.train.num_examples.toLocaleString()} arXiv papers`)
 
 // Year filte dropdown menu
 const myDropdown = document.getElementById("year_filter")
@@ -21,6 +21,7 @@ const search_url = "http://api.papermatch.me/search"
 
 // get current year
 // https://stackoverflow.com/questions/4562587/shortest-way-to-print-current-year-in-a-website
+// https://stackoverflow.com/questions/5731193/how-to-format-numbers
 const currentYear = new Date().getFullYear();
 
 // Update the dropdown options
@@ -95,6 +96,10 @@ function perform_search(event){
   // Cancel the default action, if needed
   // This prevents adding ?year_filter= in the url
   event.preventDefault();
+  
+  // removes keyboard focus from the current element.
+  // https://developer.mozilla.org/en-US/docs/Web/API/HTMLElement/blur
+  myTextArea.blur()
   
   const input_text = myTextArea.value.trim()
   console.log("input_text")
