@@ -73,7 +73,7 @@ function search(text, filter) {
                     <p class="hfill">
                     <b> ${result.entity.authors} </b> <i>${result.entity.month} ${result.entity.year}</i>
                     </p>
-                    <p id="result_abstract">
+                    <p>
                     ${result.entity.abstract}
                     </p>
                     <p class="hfill">

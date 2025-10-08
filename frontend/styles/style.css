@@ -35,7 +35,7 @@ body {
 }
 
 html {
-    font-family: Inter;
+    font-family: Marcellus;
 }
 
 button {
@@ -155,8 +155,4 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 .hfill {
     display: flex;
     justify-content: space-between;
-}
-
-#result_abstract {
-    font-family: Marcellus;
 }
