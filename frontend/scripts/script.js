@@ -145,6 +145,7 @@ function search_by_id() {
   console.log(query_parameters)
   
   // Use URLSearchParams to properly parse query parameters
+  // https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
   const urlParams = new URLSearchParams(query_parameters)
   const arxiv_id = urlParams.get('arxiv_id')
   console.log("arxiv_id")

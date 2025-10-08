@@ -1,4 +1,10 @@
-
+#about_title_index {
+    text-align: right;
+    color: #6366f1;
+}
+#about_title_about {
+    text-align: right;
+}
 
 #site_title {
     text-align: center;
@@ -6,7 +12,7 @@
 }
 
 /*From https://www.freecodecamp.org/news/remove-underline-from-link-in-css/ */
-#site_title_link{
+#site_title_link, #about_link{
     text-decoration: none;
 }
 
