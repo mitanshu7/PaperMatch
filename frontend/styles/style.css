@@ -13,7 +13,7 @@
     text-align: center;
     color: #6366f1;
     font-family: Special Elite;
-    font-size: 48px;
+    font-size: 3em;
 }
 
 /*From https://www.freecodecamp.org/news/remove-underline-from-link-in-css/ */
@@ -78,6 +78,7 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
     outline: none;
     resize: none;
     overflow: hidden;
+    font-family: Inter;
 }
 
 /* Styling for the search input on hover */
