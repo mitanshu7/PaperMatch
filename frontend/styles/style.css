@@ -20,20 +20,12 @@ body {
 /*From https://www.freecodecamp.org/news/remove-underline-from-link-in-css/ */
 a {
     text-decoration: none;
-    color: #6366f1;    
+    color: #6366f1;
 }
 
 h1 {
     font-size: 3em;
 }
-
-button {
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
-    font-family: Inter;
-}
-
 
 #about_title {
     text-align: right;
@@ -113,6 +105,7 @@ select:focus {
     transition: background-color 0.3s;
     margin: auto;
     display: block;
+    font-family: Inter;
 }
 
 /* Styling for the search button on hover */
@@ -145,4 +138,8 @@ select:focus {
 .hfill {
     display: flex;
     justify-content: space-between;
+}
+
+#results_categories {
+    font-family: Atkinson Hyperlegible Mono;
 }

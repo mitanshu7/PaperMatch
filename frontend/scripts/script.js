@@ -70,14 +70,14 @@ function search(text, filter) {
                     <a href="${result.entity.url}" target="_blank">
                        <h2 id="results_title"> ${result.entity.title} </h2>
                     </a>
-                    <p class="hfill">
+                    <p class="hfill" id="results_authors_year">
                     <b id="results_authors"> ${result.entity.authors} </b> <i id="results_month_year">${result.entity.month} ${result.entity.year}</i>
                     </p>
-                    <pid="results_abstract">
+                    <p id="results_abstract">
                     ${result.entity.abstract}
                     </p>
-                    <p class="hfill">
-                    <em>${result.entity.categories}</em> <a href="?arxiv_id=${result.entity.id}" target="_blank"> <b id="results_similar"> Search Similar </b></a>
+                    <p class="hfill" id="results_categories_search_similar">
+                    <span id="results_categories">${result.entity.categories}</span> <a href="?arxiv_id=${result.entity.id}" target="_blank"> <b id="results_similar"> Search Similar </b></a>
                     </p>
                     <hr>
                     </div>`).join("");
