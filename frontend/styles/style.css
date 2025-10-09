@@ -1,5 +1,7 @@
+/*https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/light-dark*/
 html {
     font-family:  Atkinson Hyperlegible Next;
+    color-scheme: light dark;
 }
 
 body {
@@ -13,14 +15,14 @@ body {
       overflow-wrap: break-word;
       text-rendering: optimizeLegibility;
       font-kerning: normal;
-      background-color: #f9fafb;
+      background-color:light-dark( #f9fafb, #0b0f19);
       font-size: 1em;
 }
 
 /*From https://www.freecodecamp.org/news/remove-underline-from-link-in-css/ */
 a {
     text-decoration: none;
-    color: #6366f1;
+    color: light-dark(#6366f1, #4f46e5);
 }
 
 h1 {
@@ -51,7 +53,7 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 #search-input {
     padding: 10px;
     border-radius: 20px;
-    border: 2px solid #ccc;
+    border: 2px solid light-dark( #cccccc, #333333);
     width: 75%;
     margin: auto;
     display: block;
@@ -63,23 +65,24 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 
 /* Styling for the search input on hover */
 #search-input:hover {
-    box-shadow: rgba(50, 51, 51, 0.2) 0px 2px 4px 1px;
+    box-shadow:light-dark( rgba(50, 51, 51, 0.2), rgba(255, 255, 255, 0.2)) 0px 2px 4px 1px;
 }
 
 #tip {
-    color: #808080;
+    color:light-dark( #808080, #7f7f7f);   /*virtually identical*/  
     font-size: 14px;
     font-family: Inter;
 }
 
 
 /* Styling for the filter dropdown */
-select {
+select,
+option {
     padding: 5px 10px;
     border-radius: 20px;
-    border: 2px solid #ccc;
-    background-color: #f0f0f0;
-    color: #333;
+    border: 2px solid light-dark( #cccccc, #333333);
+    background-color:light-dark( #f0f0f0, #1a1a1a);
+    color:light-dark( #333333, #cccccc);
     cursor: pointer;
     transition: background-color 0.3s;
     margin: auto;
@@ -90,7 +93,7 @@ select {
 /* Styling for the filter dropdown on hover */
 select:hover,
 select:focus {
-  background: #e0e0e0;
+  background:light-dark( #e0e0e0, #1f1f1f);
 }
 
 
@@ -98,9 +101,9 @@ select:focus {
 #search-button {
     padding: 10px 20px;
     border-radius: 20px;
-    border: 2px solid #ccc;
-    background-color: #f0f0f0;
-    color: #333;
+    border: 2px solid light-dark( #cccccc, #333333);
+    background-color: light-dark( #f0f0f0, #1a1a1a);
+    color: light-dark( #333333, #cccccc);
     cursor: pointer;
     transition: background-color 0.3s;
     margin: auto;
@@ -110,7 +113,7 @@ select:focus {
 
 /* Styling for the search button on hover */
 #search-button:hover {
-    background-color: #e0e0e0;
+    background-color:light-dark( #e0e0e0, #1f1f1f);
 }
 
 /*Loader to spin while results are loading*/
@@ -121,8 +124,8 @@ select:focus {
   aspect-ratio: 1;
   border-radius: 50%;
   background: 
-    radial-gradient(farthest-side,#6366f1 94%,#0000) top/8px 8px no-repeat,
-    conic-gradient(#0000 30%,#6366f1);
+    radial-gradient(farthest-side,light-dark(#6366f1, #4f46e5) 94%,#0000) top/8px 8px no-repeat,
+    conic-gradient(#0000 30%,light-dark(#6366f1, #4f46e5));
   -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
   animation: l13 1s infinite linear;
 }
