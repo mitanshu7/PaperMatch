@@ -77,7 +77,7 @@ function search(text, filter) {
                     ${result.entity.abstract}
                     </p>
                     <p class="hfill" id="results_categories_search_similar">
-                    <span id="results_categories">${result.entity.categories}</span> <a href="?arxiv_id=${result.entity.id}" target="_blank"> <b id="results_similar"> Search Similar </b></a>
+                    <span id="results_categories">${result.entity.categories}</span> <a href="?q=${result.entity.id}" target="_blank"> <b id="results_similar"> Search Similar </b></a>
                     </p>
                     <hr>
                     </div>`).join("");
@@ -145,11 +145,7 @@ function resize() {
 myTextArea.addEventListener("input", resize)
 
 // Search by url query
-function search_by_id() {
-  
-  const textarea_input = myTextArea.value.trim()
-  console.log("textarea_input")
-  console.log(textarea_input)
+function search_by_url() {
   
   const query_parameters = window.location.search
   console.log("query_parameters")
@@ -158,31 +154,31 @@ function search_by_id() {
   // Use URLSearchParams to properly parse query parameters
   // https://stackoverflow.com/questions/901115/how-can-i-get-query-string-values-in-javascript
   const urlParams = new URLSearchParams(query_parameters)
-  const arxiv_id = urlParams.get('arxiv_id')
-  console.log("arxiv_id")
-  console.log(arxiv_id)
+  const q = urlParams.get('q')
+  console.log("q")
+  console.log(q)
   
   const filter = urlParams.get('filter')
   console.log("filter")
   console.log(filter)
   
   // TODO check https://stackoverflow.com/questions/10691316/javascript-empty-string-comparison
-  if (arxiv_id != null) {
+  if (q != null) {
     
     // reflect arxiv id on textarea
-    myTextArea.value = arxiv_id
+    myTextArea.value = q
     
     // if url also has a filter, then use it
-    // http://localhost:8080/?arxiv_id=2401.07215&filter=year==2025 works
+    // http://localhost:8080/?q=2401.07215&filter=year==2025 works
     if (filter != null) {
-      search(arxiv_id, filter)
+      search(q, filter)
     }
     // else use no filter
     else {
-      search(arxiv_id, "")
+      search(q, "")
     }
   }
 }
 
 // Run on page load
-search_by_id()
+search_by_url()
