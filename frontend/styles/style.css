@@ -1,48 +1,5 @@
-#about_title_index {
-    text-align: right;
-    color: #6366f1;
-    font-family: Special Elite;
-
-}
-#about_title_about {
-    text-align: right;
-    font-family: Special Elite;
-}
-
-#site_title {
-    text-align: center;
-    color: #6366f1;
-    font-family: Special Elite;
-    font-size: 3em;
-}
-
-/*From https://www.freecodecamp.org/news/remove-underline-from-link-in-css/ */
-#site_title_link, #about_link{
-    text-decoration: none;
-}
-
-#site_subtitle {
-    text-align: center;
-    font-family: Special Elite;
-}
-
-#results_title {
-    color: #6366f1;
-}
-
-body {
-    background-color: #f9fafb;
-}
-
 html {
-    font-family: Marcellus;
-}
-
-button {
-
-    display: block;
-    margin-left: auto;
-    margin-right: auto;
+    font-family:  Atkinson Hyperlegible Next;
 }
 
 body {
@@ -56,7 +13,37 @@ body {
       overflow-wrap: break-word;
       text-rendering: optimizeLegibility;
       font-kerning: normal;
+      background-color: #f9fafb;
+      font-size: 1em;
 }
+
+/*From https://www.freecodecamp.org/news/remove-underline-from-link-in-css/ */
+a {
+    text-decoration: none;
+    color: #6366f1;    
+}
+
+h1 {
+    font-size: 3em;
+}
+
+button {
+    display: block;
+    margin-left: auto;
+    margin-right: auto;
+    font-family: Inter;
+}
+
+
+#about_title {
+    text-align: right;
+}
+
+.site_brand {
+    text-align: center;
+    font-family: Special Elite;
+}
+
 
 /* From
 https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-to-the-search-bar-with-css */
@@ -65,6 +52,7 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 .search-container {
     text-align: center;
     margin-top: 20px;
+    font-family: Inter;
 }
 
 /* Styling for the search input */
@@ -82,13 +70,6 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 }
 
 /* Styling for the search input on hover */
-/* Specify a single box-shadow using:
-
-    Two, three, or four <length> values.
-        If only two values are given, they are interpreted as <offset-x> and <offset-y> values.
-        If a third value is given, it is interpreted as a <blur-radius>.
-        If a fourth value is given, it is interpreted as a <spread-radius>. */
-
 #search-input:hover {
     box-shadow: rgba(50, 51, 51, 0.2) 0px 2px 4px 1px;
 }
@@ -96,11 +77,12 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 #tip {
     color: #808080;
     font-size: 14px;
+    font-family: Inter;
 }
 
 
 /* Styling for the filter dropdown */
-#year_filter {
+select {
     padding: 5px 10px;
     border-radius: 20px;
     border: 2px solid #ccc;
@@ -110,12 +92,15 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
     transition: background-color 0.3s;
     margin: auto;
     display: block;
+    font-family: Inter;
 }
 
 /* Styling for the filter dropdown on hover */
-#year_filter:hover {
-    background-color: #e0e0e0;
+select:hover,
+select:focus {
+  background: #e0e0e0;
 }
+
 
 /* Styling for the search button */
 #search-button {
@@ -150,6 +135,10 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 }
 @keyframes l13{ 
   100%{transform: rotate(1turn)}
+}
+
+#results_title {
+    font-family: Marcellus;
 }
 
 /*From https://stackoverflow.com/questions/14920401/how-to-simulate-hfill-with-html-and-css*/

@@ -66,20 +66,20 @@ function search(text, filter) {
     })
     .then((json) => {
         myDiv.innerHTML = json.map(result => `
-                    <div>
+                    <div id="results">
                     <a href="${result.entity.url}" target="_blank">
                        <h2 id="results_title"> ${result.entity.title} </h2>
                     </a>
                     <p class="hfill">
-                    <b> ${result.entity.authors} </b> <i>${result.entity.month} ${result.entity.year}</i>
+                    <b id="results_authors"> ${result.entity.authors} </b> <i id="results_month_year">${result.entity.month} ${result.entity.year}</i>
                     </p>
-                    <p>
+                    <pid="results_abstract">
                     ${result.entity.abstract}
                     </p>
                     <p class="hfill">
-                    <em>${result.entity.categories}</em> <a href="?arxiv_id=${result.entity.id}"> <b id="results_title"> Search Similar </b></a>
+                    <em>${result.entity.categories}</em> <a href="?arxiv_id=${result.entity.id}" target="_blank"> <b id="results_similar"> Search Similar </b></a>
                     </p>
-
+                    <hr>
                     </div>`).join("");
 
     // Render all math expressions after content is loaded
