@@ -126,7 +126,7 @@ select:focus {
   background: 
     radial-gradient(farthest-side,light-dark(#6366f1, #4f46e5) 94%,#0000) top/8px 8px no-repeat,
     conic-gradient(#0000 30%,light-dark(#6366f1, #4f46e5));
-  -webkit-mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
+  mask: radial-gradient(farthest-side,#0000 calc(100% - 8px),#000 0);
   animation: l13 1s infinite linear;
 }
 @keyframes l13{ 
@@ -149,7 +149,6 @@ select:focus {
 
 #to_top {
     position: fixed;
-    line-height: 1;
     bottom: 20px;
     right: 20px;
     height: 50px;
