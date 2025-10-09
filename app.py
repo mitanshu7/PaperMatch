@@ -337,6 +337,21 @@ style = """
 #toTopBtn:hover {
     background-color: #c7d4ff; /* Change background color on hover */
 }
+
+/*From https://stackoverflow.com/questions/14920401/how-to-simulate-hfill-with-html-and-css*/
+.hfill {
+    text-align: center;
+    display: block;
+    justify-content: space-between;
+}
+
+a {
+text-decoration: none;
+}
+
+sup {
+color: #6366f1;
+}
 """
 
 # Markdown for about page
@@ -375,7 +390,7 @@ with gr.Blocks(
 ) as demo:
     # Title and Subtitle
     gr.HTML(
-        '<h1><a href="https://papermatch.me" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>'
+        '<div class="hfill"> <h1><a href="https://papermatch.me" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>  <h1><a href="https://beta.papermatch.me" target="_blank">Try PaperMatch <sup>beta</sup> </a></h1> </div>'
     )
     gr.HTML("<h3> Discover Relevant Research, Instantly ⚡</h3>")
 
@@ -467,7 +482,7 @@ with gr.Blocks(
 with demo.route("About", "/about"):
     # Title and Subtitle
     gr.HTML(
-        '<h1><a href="https://papermatch.me" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>'
+        '<div class="hfill"> <h1><a href="https://papermatch.me" style="font-weight: bold; text-decoration: none;">PaperMatch</a></h1>  <h1><a href="https://beta.papermatch.me" target="_blank">Try PaperMatch <sup>beta</sup> </a></h1> </div>'
     )
     gr.HTML("<h3> Discover Relevant Research, Instantly ⚡</h3>")
 
