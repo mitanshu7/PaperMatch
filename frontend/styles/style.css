@@ -51,7 +51,7 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 
 /* Styling for the search input */
 #search-input {
-    padding: 10px;
+    padding: 12px 24px;
     border-radius: 20px;
     border: 2px solid light-dark( #cccccc, #333333);
     width: 80%;
@@ -74,7 +74,7 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 select,
 option {
     padding: 10px 10px;
-    border-radius: 20px;
+    border-radius: 10px;
     border: 2px solid light-dark( #cccccc, #333333);
     background-color:light-dark( #f0f0f0, #1a1a1a);
     color:light-dark( #333333, #cccccc);
@@ -98,7 +98,7 @@ select:focus {
 /* Styling for the search button */
 #search-button {
     padding: 10px 10px;
-    border-radius: 20px;
+    border-radius: 10px;
     border: 2px solid light-dark( #cccccc, #333333);
     background-color: light-dark( #f0f0f0, #1a1a1a);
     color: light-dark( #333333, #cccccc);
@@ -116,6 +116,29 @@ select:focus {
 #search-button:hover {
     background-color:light-dark( #e0e0e0, #1f1f1f);
 }
+
+@media (max-width: 650px) {
+    #search-input {
+        padding: 12px 6px;
+    }
+    select,
+    #search-button {
+        padding: 5px 5px;
+        display: block;
+        margin: 4% auto;
+        width: auto;
+        border-radius: 10px;
+    }
+    h1 {
+        font-size: 2em;
+    }
+    #about_title {
+        font-size: 0.9em;
+    }
+    textarea::placeholder {
+        font-size: 0.9em;
+    }
+}   
 
 /*https://cssloaders.github.io/*/
 #loader {
