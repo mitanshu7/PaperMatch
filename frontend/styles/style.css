@@ -45,7 +45,7 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
 /* Styling for the search container */
 .search-container {
     text-align: center;
-    margin-top: 20px;
+    margin: 4% auto;
     font-family: Inter;
 }
 
@@ -54,8 +54,8 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
     padding: 10px;
     border-radius: 20px;
     border: 2px solid light-dark( #cccccc, #333333);
-    width: 75%;
-    margin: auto;
+    width: 80%;
+    margin: 4% auto;
     display: block;
     outline: none;
     resize: none;
@@ -70,26 +70,22 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
     box-shadow:light-dark( rgba(50, 51, 51, 0.2), rgba(255, 255, 255, 0.2)) 0px 2px 4px 1px;
 }
 
-#tip {
-    color:light-dark( #808080, #7f7f7f);   /*virtually identical*/  
-    font-size: 14px;
-    font-family: Inter;
-}
-
-
 /* Styling for the filter dropdown */
 select,
 option {
-    padding: 5px 10px;
+    padding: 10px 10px;
     border-radius: 20px;
     border: 2px solid light-dark( #cccccc, #333333);
     background-color:light-dark( #f0f0f0, #1a1a1a);
     color:light-dark( #333333, #cccccc);
     cursor: pointer;
     transition: background-color 0.3s;
-    margin: auto;
-    display: block;
+    margin: auto 5%;
+    display: inline-block;
     font-family: Inter;
+    font-size: 1em;
+    width: 20%;
+    text-align: auto;
 }
 
 /* Styling for the filter dropdown on hover */
@@ -101,16 +97,19 @@ select:focus {
 
 /* Styling for the search button */
 #search-button {
-    padding: 10px 20px;
+    padding: 10px 10px;
     border-radius: 20px;
     border: 2px solid light-dark( #cccccc, #333333);
     background-color: light-dark( #f0f0f0, #1a1a1a);
     color: light-dark( #333333, #cccccc);
     cursor: pointer;
     transition: background-color 0.3s;
-    margin: auto;
-    display: block;
+    margin: auto 5%;
+    display: inline-block;
     font-family: Inter;
+    font-size: 1em;
+    width: 20%;
+    text-align: center;
 }
 
 /* Styling for the search button on hover */

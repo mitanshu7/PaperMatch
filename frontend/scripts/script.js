@@ -1,9 +1,6 @@
 // Search button
 const myButton = document.getElementById("search-button")
 
-// tip
-myTip = document.getElementById("tip")
-
 // Search input
 const myTextArea = document.getElementById("search-input")
 
@@ -38,9 +35,6 @@ yearDropdown.innerHTML = `
 
 //  Function to perform the search and modify div to render html
 function search(text, filter) {
-  
-    // Hide tip on search
-    myTip.innerHTML = ""
 
     // Show a spinning circle till the results load
     myDiv.innerHTML = `<p></p>
