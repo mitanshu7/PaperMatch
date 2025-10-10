@@ -61,6 +61,8 @@ https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-
     resize: none;
     overflow: hidden;
     font-family: Inter;
+    height: 43px; /* Fixed single-line height to make it look like a search bar */
+    box-sizing: border-box;
 }
 
 /* Styling for the search input on hover */
@@ -184,6 +186,7 @@ select:focus {
     border-radius: 50%;
     cursor: pointer;
     transition: all 0.3s ease;
+    line-height: 1;
 }
 
 #to_top:hover {
