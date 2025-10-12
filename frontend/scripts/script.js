@@ -1,8 +1,8 @@
 // Search button
-const myButton = document.getElementById("search-button")
+const myButton = document.getElementById("search_button")
 
 // Search input
-const myTextArea = document.getElementById("search-input")
+const myTextArea = document.getElementById("search_input")
 
 // Huddingface dataset url
 const dataset_url = "https://datasets-server.huggingface.co/info?dataset=bluuebunny%2Farxiv_abstract_embedding_mxbai_large_v1_milvus_binary"
