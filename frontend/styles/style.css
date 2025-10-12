@@ -117,10 +117,12 @@ select:focus {
     background-color:light-dark( #e0e0e0, #1f1f1f);
 }
 
-@media (max-width: 650px) {
+@media screen and (width <= 650px) {
+    
     #search-input {
         padding: 12px 6px;
     }
+    
     select,
     #search-button {
         padding: 5px 5px;
@@ -129,16 +131,26 @@ select:focus {
         width: auto;
         border-radius: 10px;
     }
+    
     h1 {
         font-size: 2em;
     }
+    
     #about_title {
         font-size: 0.9em;
     }
+    
     textarea::placeholder {
         font-size: 0.9em;
     }
-}   
+}
+
+@media screen and (width <= 375px) {
+    
+    textarea::placeholder {
+        font-size: 0.7em;
+    }
+}
 
 /*https://cssloaders.github.io/*/
 #loader {
