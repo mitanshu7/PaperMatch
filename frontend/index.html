@@ -1,0 +1,80 @@
+<!DOCTYPE html>
+
+<html lang="en">
+
+  <head>
+      
+    <link rel="apple-touch-icon" sizes="180x180" href="/images/favicon_io/apple-touch-icon.png">
+    <link rel="icon" type="image/png" sizes="32x32" href="/images/favicon_io/favicon-32x32.png">
+    <link rel="icon" type="image/png" sizes="16x16" href="/images/favicon_io/favicon-16x16.png">
+    <link rel="manifest" href="/images/favicon_io/site.webmanifest">
+        
+    <meta property="og:title" content="PaperMatch">
+    <meta property="og:description" content=" Discover Relevant Research, Instantly ⚡">
+    <meta property="og:image" content="https://papermatch.me/images/logo.png">
+    <meta property="og:url" content="https://papermatch.me">
+    <meta property="og:type" content="website">
+
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width">
+    <meta name="description" content="A semantic search engine for discovering papers on arXiv">
+    
+    <title>PaperMatch</title>
+    
+    
+    
+    <link rel="stylesheet" href="styles/style.css"/>
+
+    <!--katex@0.16.23-->
+    <link rel="stylesheet" href="styles/katex.min.css">
+
+    <!-- The loading of KaTeX is deferred to speed up page rendering -->
+    <script defer src="scripts/katex.min.js"></script>
+    
+    <!-- To automatically render math in text elements, include the auto-render extension: -->
+    <script defer src="scripts/auto-render.min.js"></script>
+    
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible+Mono:ital,wght@0,200..800;1,200..800&family=Atkinson+Hyperlegible+Next:ital,wght@0,200..800;1,200..800&family=Inter:ital,opsz,wght@0,14..32,100..900;1,14..32,100..900&family=Marcellus&family=Special+Elite&display=swap" rel="stylesheet">
+        
+    <script async src="scripts/script.js"></script>
+
+  </head>
+
+  <body>
+      
+    <a href="/about.html">
+    <h3 id="about_title" class="site_brand">About</h3>
+    </a>
+      
+    <a href="/">
+    <h1 id="site_title" class="site_brand">PaperMatch</h1>
+    </a>
+    
+    <h3 id="site_subtitle" class="site_brand"> Discover Relevant Research, Instantly ⚡</h3>
+
+    <div id="input">
+        <div class="search_container">
+            <p>
+                <textarea type="text" id="search_input" placeholder="Search                   arXiv papers" autofocus ></textarea>
+            </p>
+
+            <p>
+                <!--<label for="year_filter">Filter by year:</label>-->
+                
+                <select name="year_filter" id="year_filter">
+                </select>
+
+            <button type="submit" id="search_button">Search</button>
+            </p>
+        </div>
+    </div>
+
+    <div id="results"></div>
+
+    <a  href="#search-input"><button id="to_top">↑</button></a>
+
+  </body>
+
+</html>

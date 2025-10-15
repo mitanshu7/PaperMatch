@@ -1,8 +1,13 @@
-embedEtcd.yaml
-user.yaml
-volumes/
-*tmp*
+# Python-generated files
+__pycache__/
+*.py[oc]
+build/
+dist/
+wheels/
+*.egg-info
+
+# Virtual environments
+.venv
+
+# Secrets
 .env
-*.log
-.pyc
-.gradio/

@@ -1,0 +1,228 @@
+/*https://developer.mozilla.org/en-US/docs/Web/CSS/color_value/light-dark*/
+html {
+    font-family:  Atkinson Hyperlegible Next;
+    color-scheme: light dark;
+}
+
+body {
+      margin: 0 auto;
+      max-width: 50em;
+      padding-left: 50px;
+      padding-right: 50px;
+      padding-top: 50px;
+      padding-bottom: 50px;
+      hyphens: auto;
+      overflow-wrap: break-word;
+      text-rendering: optimizeLegibility;
+      font-kerning: normal;
+      background-color:light-dark( #f9fafb, #0b0f19);
+      font-size: 1em;
+}
+
+/*From https://www.freecodecamp.org/news/remove-underline-from-link-in-css/ */
+a {
+    text-decoration: none;
+    color: light-dark(#6366f1, #4f46e5);
+}
+
+h1 {
+    font-size: 3em;
+}
+
+#about_title {
+    text-align: right;
+}
+
+.site_brand {
+    text-align: center;
+    font-family: Special Elite;
+}
+
+
+/* From
+https://stackoverflow.com/questions/78208300/how-do-i-center-search-button-next-to-the-search-bar-with-css */
+
+/* Styling for the search container */
+.search_container {
+    text-align: center;
+    margin: 4% auto;
+    font-family: Inter;
+}
+
+/* Styling for the search input */
+#search_input {
+    padding: 12px 24px;
+    border-radius: 20px;
+    border: 2px solid light-dark( #cccccc, #333333);
+    width: 80%;
+    margin: 4% auto;
+    display: block;
+    outline: none;
+    resize: none;
+    overflow: hidden;
+    font-family: Inter;
+    height: 43px; /* Fixed single-line height to make it look like a search bar */
+    box-sizing: border-box;
+}
+
+/* Styling for the search input on hover */
+#search_input:hover {
+    box-shadow:light-dark( rgba(50, 51, 51, 0.2), rgba(255, 255, 255, 0.2)) 0px 2px 4px 1px;
+}
+
+/* Styling for the filter dropdown */
+select,
+option {
+    padding: 10px 10px;
+    border-radius: 10px;
+    border: 2px solid light-dark( #cccccc, #333333);
+    background-color:light-dark( #f0f0f0, #1a1a1a);
+    color:light-dark( #333333, #cccccc);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: auto 5%;
+    display: inline-block;
+    font-family: Inter;
+    font-size: 1em;
+    width: 20%;
+    text-align: auto;
+}
+
+/* Styling for the filter dropdown on hover */
+select:hover,
+select:focus {
+  background:light-dark( #e0e0e0, #1f1f1f);
+}
+
+
+/* Styling for the search button */
+#search_button {
+    padding: 10px 10px;
+    border-radius: 10px;
+    border: 2px solid light-dark( #cccccc, #333333);
+    background-color: light-dark( #f0f0f0, #1a1a1a);
+    color: light-dark( #333333, #cccccc);
+    cursor: pointer;
+    transition: background-color 0.3s;
+    margin: auto 5%;
+    display: inline-block;
+    font-family: Inter;
+    font-size: 1em;
+    width: 20%;
+    text-align: center;
+}
+
+/* Styling for the search button on hover */
+#search_button:hover {
+    background-color:light-dark( #e0e0e0, #1f1f1f);
+}
+
+@media screen and (width <= 650px) {
+    
+    #search_input {
+        padding: 12px 6px;
+    }
+    
+    select,
+    #search_button {
+        padding: 5px 5px;
+        display: block;
+        margin: 4% auto;
+        width: auto;
+        border-radius: 10px;
+    }
+    
+    h1 {
+        font-size: 2em;
+    }
+    
+    #about_title {
+        font-size: 0.9em;
+    }
+    
+    textarea::placeholder {
+        font-size: 0.9em;
+    }
+}
+
+@media screen and (width <= 375px) {
+    
+    textarea::placeholder {
+        font-size: 0.7em;
+    }
+}
+
+/*https://cssloaders.github.io/*/
+#loader {
+  width: 72px;
+  height: 72px;
+  display: block;
+  margin: 3em auto;
+  position: relative;
+}
+#loader::after,
+#loader::before {
+  content: '';  
+  box-sizing: border-box;
+  width: 72px;
+  height: 72px;
+  border-radius: 50%;
+  border: 2px solid light-dark(#6366f1, #4f46e5);
+  position: absolute;
+  left: 0;
+  top: 0;
+  animation: animloader 2s linear infinite;
+}
+#loader::after {
+  animation-delay: 1s;
+}
+
+@keyframes animloader {
+  0% {
+    transform: scale(0);
+    opacity: 1;
+  }
+  100% {
+    transform: scale(1);
+    opacity: 0;
+  }
+}
+
+
+#results_title {
+    font-family: Marcellus;
+}
+
+/*From https://stackoverflow.com/questions/14920401/how-to-simulate-hfill-with-html-and-css*/
+.hfill {
+    display: flex;
+    justify-content: space-between;
+}
+
+#results_categories {
+    font-family: Atkinson Hyperlegible Mono;
+}
+
+#to_top {
+    position: fixed;
+    bottom: 20px;
+    right: 20px;
+    height: 50px;
+    width: 50px;
+    font-size: 32px;
+    border: none;
+    color: light-dark(#4f46e5, #e0e7ff);
+    background-color: light-dark(#e0e7ff,#4f46e5 );
+    text-align: center;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    line-height: 1;
+}
+
+#to_top:hover {
+    background-color: light-dark(#c7d4ff, #6366f1);
+}

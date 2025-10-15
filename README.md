@@ -115,3 +115,7 @@ This project is licensed under the MIT License. See the [LICENSE](LICENSE) file 
 ## Contact
 
 For any questions or feedback, please contact [mitanshu.sukhwani@gmail.com](mailto:mitanshu.sukhwani@gmail.com).
+
+## Acknowledgements
+
+Mnay thanks to Devan for suggesting amazing fonts, Madhu for giving quality of life improvements, and Kshitij for always being the test subject. 

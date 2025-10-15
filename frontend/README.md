@@ -1,0 +1,1 @@
+this is a static site which calls api.papermatch.com in the background

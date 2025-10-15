@@ -6,10 +6,10 @@ readme = "README.md"
 requires-python = ">=3.13"
 dependencies = [
     "arxiv>=2.2.0",
-    "gradio>=5.35.0",
-    "mixedbread>=0.17.0",
-    "pymilvus>=2.5.11",
+    "backoff>=2.2.1",
+    "fastapi[standard]>=0.118.0",
+    "gradio>=5.47.2",
+    "mixedbread>=0.30.0",
+    "pymilvus>=2.6.2",
     "python-dotenv>=1.1.1",
-    "sentence-transformers>=4.1.0",
-    "torch>=2.7.1",
 ]
