@@ -90,7 +90,6 @@ def extract_arxiv_id_from_url(arxiv_url: str) -> str:
 
     return id
 
-
 # Function to search ArXiv by ID
 @backoff.on_exception(
     wait_gen=backoff.expo,
@@ -105,20 +104,20 @@ def fetch_arxiv_by_id(arxiv_id: str) -> ArxivPaper:
     # Fetch the paper metadata using the Arxiv API
     paper = next(arxiv_client.results(search), None)
 
-    # Create the result model
-    ArxivPaper.id = extract_arxiv_id_from_url(paper.entry_id)
-    ArxivPaper.title = paper.title.replace("\n", " ")
-    ArxivPaper.authors = [str(author) for author in paper.authors]
-    ArxivPaper.abstract = paper.summary.replace("\n", " ")
-    ArxivPaper.url = paper.entry_id
-    ArxivPaper.pdf = paper.pdf_url
-    ArxivPaper.month = paper.published.month
-    ArxivPaper.year = paper.published.year
-    ArxivPaper.categories = paper.categories
+    # Create the result model instance
+    arxiv_paper = ArxivPaper(
+        id=extract_arxiv_id_from_url(paper.entry_id),
+        title=paper.title.replace("\n", " "),
+        authors=[str(author) for author in paper.authors],
+        abstract=paper.summary.replace("\n", " "),
+        url=paper.entry_id,
+        pdf=paper.pdf_url,
+        month=paper.published.month,
+        year=paper.published.year,
+        categories=paper.categories,
+    )
 
-    return ArxivPaper
-
-
+    return arxiv_paper
 ################################################################################
 
 
