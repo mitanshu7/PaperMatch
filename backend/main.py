@@ -318,9 +318,11 @@ def search(request: TextRequest) -> list[SearchResult]:
 
 
 def prettify_rerank_search_results(rerank_results: list[Data]):
+    """
+    The reranker has extra fields in response, we only need the data we originally
+    inputted. Hence we extract the `input` attribute from the results.
+    """
     pretty_data = [search_result.input for search_result in rerank_results]
-    print("prettify_rerank_search_results")
-    print(pretty_data)
     return pretty_data
 
 
@@ -331,6 +333,9 @@ def rerank_search_results(
     rank_fields: list[str] = ["entity.abstract"],
     top_k: int = SEARCH_LIMIT,
 ) -> list[SearchResult]:
+    """
+    Rerank search results using mixedbread's reranker
+    """
     response = mxbai.rerank(
         model="mixedbread-ai/mxbai-rerank-large-v2",
         query=query,
@@ -342,9 +347,6 @@ def rerank_search_results(
 
     rerank_results = response.data
 
-    print("rerank_search_results")
-    print(rerank_results)
-
     return prettify_rerank_search_results(rerank_results)
 
 
@@ -352,28 +354,29 @@ def rerank_search_results(
 
 
 def serialise_for_reranker(search_results: list[SearchResult]) -> list[dict]:
+    """
+    Function to create a list of dicts from the search results as sending the
+    Pydantic model alone results in loss of information from Mixedbread's side.
+    """
     serialised_search_results = [
         search_result.model_dump() for search_result in search_results
     ]
-    print("serialise_for_reranker")
-    print(serialised_search_results)
     return serialised_search_results
 
 
 # Rerank the search
 @app.post("/reranked_search")
 def reranked_search(request: TextRequest) -> list[SearchResult]:
+    """
+    Function to wrap all the above functions and behave (in request and response)
+    same as the search endpoint.
+    """
 
+    # Increase the search limit for semantic search
     request.search_limit = RERANK_INPUT_SEARCH_LIMIT
-
-    print("reranked_search")
-    print(request)
 
     # Perform regular semantic search
     search_results = search(request)
-
-    print(search_results)
-    print(type(search_results[0]))
 
     # Extract user query from request
     query = request.text
@@ -383,7 +386,5 @@ def reranked_search(request: TextRequest) -> list[SearchResult]:
         query,
         serialise_for_reranker(search_results),
     )
-
-    print(reranked_search_results)
 
     return reranked_search_results
