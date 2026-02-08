@@ -44,6 +44,7 @@ milvus_client = MilvusClient(uri=ENDPOINT, token=TOKEN)
 # Setup search parameters
 COLLECTION_NAME = os.getenv("COLLECTION_NAME")
 SEARCH_LIMIT = int(os.getenv("SEARCH_LIMIT"))
+RERANK_INPUT_SEARCH_LIMIT = int(os.getenv("RERANK_INPUT_SEARCH_LIMIT"))
 
 # Setup mxbai client
 mxbai_api_key = os.getenv("MXBAI_API_KEY")
@@ -362,6 +363,8 @@ def serialise_for_reranker(search_results: list[SearchResult]) -> list[dict]:
 # Rerank the search
 @app.post("/reranked_search")
 def reranked_search(request: TextRequest) -> list[SearchResult]:
+
+    request.search_limit = RERANK_INPUT_SEARCH_LIMIT
 
     print("reranked_search")
     print(request)
