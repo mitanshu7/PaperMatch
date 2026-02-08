@@ -1,7 +1,8 @@
-from pydantic import BaseModel, HttpUrl, field_validator, Field
+import os
 import re
 from datetime import datetime
-import os
+
+from pydantic import BaseModel, Field, HttpUrl, field_validator
 
 SEARCH_LIMIT = int(os.getenv("SEARCH_LIMIT"))
 
@@ -10,11 +11,29 @@ SEARCH_LIMIT = int(os.getenv("SEARCH_LIMIT"))
 class TextRequest(BaseModel):
     text: str
     filter: str = ""
-    search_limit :int = Field(default=SEARCH_LIMIT)
+    search_limit: int = Field(default=SEARCH_LIMIT)
+
+
+class Entity(BaseModel):
+    url: str
+    title: str
+    abstract: str
+    authors: str
+    categories: str
+    month: str
+    year: int
+    id: str
+
+
+class SearchResult(BaseModel):
+    id: str
+    distance: int
+    entity: Entity
 
 
 arxiv_url_regex = re.compile(r".+arxiv\.org.+")
 current_year = datetime.now().year
+
 
 # Response model for arxiv papers
 class ArxivPaper(BaseModel):

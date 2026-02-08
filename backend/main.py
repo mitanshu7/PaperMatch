@@ -11,8 +11,9 @@ from dotenv import load_dotenv
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from mixedbread import Mixedbread
+from mixedbread.types.rerank_response import Data
 from pymilvus import MilvusClient
-from schemas import ArxivPaper, TextRequest
+from schemas import ArxivPaper, SearchResult, TextRequest
 
 ################################################################################
 # Configuration
@@ -151,7 +152,7 @@ def search_by_vector(
     vector: bytes,
     filter: str = "",
     search_limit: int = SEARCH_LIMIT,
-) -> list[dict]:
+) -> list[SearchResult]:
     # Request zilliz for the vector search
     result = milvus_client.search(
         collection_name=COLLECTION_NAME,  # Collection to search in
@@ -170,8 +171,12 @@ def search_by_vector(
         filter=filter,  # Filter to apply to the search
     )
 
+    search_results = [
+        SearchResult.model_validate(search_result) for search_result in result[0]
+    ]
+
     # returns a list of dictionaries with id and distance as keys
-    return result[0]
+    return search_results
 
 
 ################################################################################
@@ -179,7 +184,7 @@ def search_by_vector(
 
 # Search the collection using text
 @app.post("/search_by_text")
-def search_by_text(request: TextRequest) -> list[dict]:
+def search_by_text(request: TextRequest) -> list[SearchResult]:
     # Extract objects?
     text = request.text
     filter = request.filter
@@ -209,7 +214,7 @@ def search_by_known_id(
     arxiv_id: str,
     filter: str = "",
     search_limit: int = SEARCH_LIMIT,
-) -> list[dict]:
+) -> list[SearchResult]:
     # Get the id which is already in database
     id_in_db = milvus_client.get(collection_name=COLLECTION_NAME, ids=[arxiv_id])
 
@@ -236,7 +241,7 @@ def search_by_id(
     arxiv_id: str,
     filter: str = "",
     search_limit: int = SEARCH_LIMIT,
-) -> list[dict]:
+) -> list[SearchResult]:
     # Search if id is already in database
     id_in_db = milvus_client.get(collection_name=COLLECTION_NAME, ids=[arxiv_id])
 
@@ -268,7 +273,7 @@ def search_by_id(
 # Simulate a search point which automatically figures out if the search is using
 # id or text
 @app.post("/search")
-def search(request: TextRequest) -> list[dict]:
+def search(request: TextRequest) -> list[SearchResult]:
     text = request.text
     filter = request.filter
     search_limit = request.search_limit
@@ -289,3 +294,93 @@ def search(request: TextRequest) -> list[dict]:
 
 
 ################################################################################
+
+
+# @app.post("/rerank")
+# def rerank(
+#     query: str,
+#     documents: list[str],
+#     top_k: int = SEARCH_LIMIT,
+# ):
+#     response = mxbai.rerank(
+#         model="mixedbread-ai/mxbai-rerank-large-v2",
+#         query=query,
+#         input=documents,
+#         top_k=top_k,
+#         return_input=True,
+#     )
+
+#     return response.data
+
+
+################################################################################
+
+
+def prettify_rerank_search_results(rerank_results: list[Data]):
+    pretty_data = [search_result.input for search_result in rerank_results]
+    print("prettify_rerank_search_results")
+    print(pretty_data)
+    return pretty_data
+
+
+@app.post("/rerank_search_results")
+def rerank_search_results(
+    query: str,
+    documents: list[dict],
+    rank_fields: list[str] = ["entity.abstract"],
+    top_k: int = SEARCH_LIMIT,
+) -> list[SearchResult]:
+    response = mxbai.rerank(
+        model="mixedbread-ai/mxbai-rerank-large-v2",
+        query=query,
+        input=documents,
+        top_k=top_k,
+        rank_fields=rank_fields,
+        return_input=True,
+    )
+
+    rerank_results = response.data
+
+    print("rerank_search_results")
+    print(rerank_results)
+
+    return prettify_rerank_search_results(rerank_results)
+
+
+################################################################################
+
+
+def serialise_for_reranker(search_results: list[SearchResult]) -> list[dict]:
+    serialised_search_results = [
+        search_result.model_dump() for search_result in search_results
+    ]
+    print("serialise_for_reranker")
+    print(serialised_search_results)
+    return serialised_search_results
+
+
+# Rerank the search
+@app.post("/reranked_search")
+def reranked_search(request: TextRequest) -> list[SearchResult]:
+
+    print("reranked_search")
+    print(request)
+
+    # Perform regular semantic search
+    search_results = search(request)
+
+    print(search_results)
+    print(type(search_results[0]))
+
+    # Extract user query from request
+    query = request.text
+
+    # Rerank the search results
+    reranked_search_results = rerank_search_results(
+        query,
+        serialise_for_reranker(search_results),
+    )
+
+    print(reranked_search_results)
+
+    return reranked_search_results
