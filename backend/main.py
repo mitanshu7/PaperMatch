@@ -1,8 +1,8 @@
 # Import required libraries
+import os
 import re
 from datetime import datetime
 from functools import cache
-import os
 
 import arxiv
 import backoff
@@ -90,6 +90,7 @@ def extract_arxiv_id_from_url(arxiv_url: str) -> str:
 
     return id
 
+
 # Function to search ArXiv by ID
 @backoff.on_exception(
     wait_gen=backoff.expo,
@@ -118,6 +119,8 @@ def fetch_arxiv_by_id(arxiv_id: str) -> ArxivPaper:
     )
 
     return arxiv_paper
+
+
 ################################################################################
 
 
@@ -144,12 +147,16 @@ def embed_text(text: str) -> bytes:
 
 ################################################################################
 # Single vector search
-def search_by_vector(vector: bytes, filter: str = "") -> list[dict]:
+def search_by_vector(
+    vector: bytes,
+    filter: str = "",
+    search_limit: int = SEARCH_LIMIT,
+) -> list[dict]:
     # Request zilliz for the vector search
     result = milvus_client.search(
         collection_name=COLLECTION_NAME,  # Collection to search in
         data=[vector],  # Vector to search for
-        limit=SEARCH_LIMIT,  # Max. number of search results to return
+        limit=search_limit,  # Max. number of search results to return
         output_fields=[
             "id",
             "title",
@@ -176,12 +183,17 @@ def search_by_text(request: TextRequest) -> list[dict]:
     # Extract objects?
     text = request.text
     filter = request.filter
+    search_limit = request.search_limit
 
     # Embed the text
     embedding = embed_text(text)
 
     # Send vector for search
-    results = search_by_vector(vector=embedding, filter=filter)
+    results = search_by_vector(
+        vector=embedding,
+        filter=filter,
+        search_limit=search_limit,
+    )
 
     return results
 
@@ -193,7 +205,11 @@ def search_by_text(request: TextRequest) -> list[dict]:
 # The onus is on the user to make sure the id exists
 # Use with similar results feature
 @app.get("/search_by_known_id/{arxiv_id}")
-def search_by_known_id(arxiv_id: str, filter: str = "") -> list[dict]:
+def search_by_known_id(
+    arxiv_id: str,
+    filter: str = "",
+    search_limit: int = SEARCH_LIMIT,
+) -> list[dict]:
     # Get the id which is already in database
     id_in_db = milvus_client.get(collection_name=COLLECTION_NAME, ids=[arxiv_id])
 
@@ -201,7 +217,11 @@ def search_by_known_id(arxiv_id: str, filter: str = "") -> list[dict]:
     embedding = id_in_db[0]["vector"][0]
 
     # Run similarity search
-    results = search_by_vector(vector=embedding, filter=filter)
+    results = search_by_vector(
+        vector=embedding,
+        filter=filter,
+        search_limit=search_limit,
+    )
 
     return results
 
@@ -212,7 +232,11 @@ def search_by_known_id(arxiv_id: str, filter: str = "") -> list[dict]:
 # Search by id. this will first hit the db to get vector
 # else use abstract from site to arxiv
 @app.get("/search_by_id/{arxiv_id}")
-def search_by_id(arxiv_id: str, filter: str = "") -> list[dict]:
+def search_by_id(
+    arxiv_id: str,
+    filter: str = "",
+    search_limit: int = SEARCH_LIMIT,
+) -> list[dict]:
     # Search if id is already in database
     id_in_db = milvus_client.get(collection_name=COLLECTION_NAME, ids=[arxiv_id])
 
@@ -229,7 +253,11 @@ def search_by_id(arxiv_id: str, filter: str = "") -> list[dict]:
         # Embed abstract
         embedding = embed_text(arxiv_paper.abstract)
 
-    results = search_by_vector(vector=embedding, filter=filter)
+    results = search_by_vector(
+        vector=embedding,
+        filter=filter,
+        search_limit=search_limit,
+    )
 
     return results
 
@@ -243,13 +271,21 @@ def search_by_id(arxiv_id: str, filter: str = "") -> list[dict]:
 def search(request: TextRequest) -> list[dict]:
     text = request.text
     filter = request.filter
+    search_limit = request.search_limit
 
     id_in_text = extract_arxiv_id_from_text(text)
 
     if id_in_text:
-        results = search_by_id(id_in_text, filter)
+        results = search_by_id(
+            id_in_text,
+            filter,
+            search_limit,
+        )
 
     else:
         results = search_by_text(request)
 
     return results
+
+
+################################################################################

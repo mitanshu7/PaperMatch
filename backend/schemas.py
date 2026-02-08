@@ -1,12 +1,16 @@
 from pydantic import BaseModel, HttpUrl, field_validator, Field
 import re
 from datetime import datetime
+import os
+
+SEARCH_LIMIT = int(os.getenv("SEARCH_LIMIT"))
 
 
 # Create a request model
 class TextRequest(BaseModel):
     text: str
     filter: str = ""
+    search_limit :int = Field(default=SEARCH_LIMIT)
 
 
 arxiv_url_regex = re.compile(r".+arxiv\.org.+")
@@ -23,14 +27,14 @@ class ArxivPaper(BaseModel):
     month: int = Field(ge=1, le=12)
     year: int = Field(ge=1991, le=current_year)
     categories: list[str] = Field(min_length=1)
-    
+
     @field_validator("url", "pdf")
     @classmethod
     def check_arxiv_url(cls, value: HttpUrl) -> HttpUrl:
-        
+
         match = arxiv_url_regex.findall(str(value))
-        
+
         if len(match) == 0:
             raise ValueError(f"{value} is not an arxiv url")
-            
+
         return value
