@@ -8,7 +8,6 @@ dependencies = [
     "arxiv>=2.2.0",
     "backoff>=2.2.1",
     "fastapi[standard]>=0.118.0",
-    "gradio>=5.47.2",
     "mixedbread>=0.30.0",
     "pymilvus>=2.6.2",
     "python-dotenv>=1.1.1",
