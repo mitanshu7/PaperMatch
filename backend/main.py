@@ -231,6 +231,32 @@ def search_by_known_id(
 
     return results
 
+################################################################################
+
+
+# Search by id. this will first hit the db to get vector
+# else use abstract from site to arxiv
+@app.get("/search_by_unknown_id/{arxiv_id}")
+def search_by_unknown_id(
+    arxiv_id: str,
+    filter: str = "",
+    search_limit: int = SEARCH_LIMIT,
+) -> list[SearchResult]:
+
+    # Search arxiv for paper details
+    arxiv_paper = fetch_arxiv_by_id(arxiv_id)
+
+    # Embed abstract
+    embedding = embed_text(arxiv_paper.abstract)
+
+    results = search_by_vector(
+        vector=embedding,
+        filter=filter,
+        search_limit=search_limit,
+    )
+
+    return results
+
 
 ################################################################################
 
@@ -282,7 +308,7 @@ def search(request: TextRequest) -> list[SearchResult]:
     id_in_text = extract_arxiv_id_from_text(text)
 
     if id_in_text:
-        results = search_by_id(
+        results = search_by_unknown_id(
             id_in_text,
             filter,
             search_limit,
