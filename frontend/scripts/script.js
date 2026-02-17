@@ -70,9 +70,9 @@ function search(text, filter) {
                     <p id="results_abstract">
                     ${result.entity.abstract}
                     </p>
-                    <p class="hfill" id="results_categories_search_similar">
-                    <span id="results_categories">${result.entity.categories}</span> <a href="?q=${result.entity.id}" target="_blank"> <b id="results_similar"> Search Similar </b></a>
-                    </p>
+                    <div class="hfill" id="results_categories_search_similar">
+                    <span id="results_categories">${result.entity.categories}</span> <div> <a href="?q=${result.entity.id}" target="_blank"> <b id="results_similar"> Search Similar </b></a>/<a href="https://api.semanticscholar.org/arXiv:${result.entity.id}" target="_blank"> <b id="results_similar"> Semantic Scholar</b></a> </div>
+                    </div>
                     <hr>
                     </div>`).join("");
 
