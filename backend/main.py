@@ -364,6 +364,33 @@ def serialise_for_reranker(search_results: list[SearchResult]) -> list[dict]:
     return serialised_search_results
 
 
+def compose_reranking_query(text: str) -> str:
+    id_in_text = extract_arxiv_id_from_text(text)
+
+    if id_in_text:
+        # Search if id is already in database
+        id_in_db = milvus_client.get(collection_name=COLLECTION_NAME, ids=[id_in_text])
+        print("Printing id_in_db:")
+        print(id_in_db)
+
+        # If the id is already in database
+        if bool(id_in_db):
+            # Get the abstract from db itself
+            abstract = id_in_db[0]["abstract"]
+
+            return abstract
+        # If the id is not already in database
+        else:
+            # Search arxiv for paper details
+            arxiv_paper = fetch_arxiv_by_id(id_in_text)
+
+            # And then return the fetched abstract
+            return arxiv_paper.abstract
+    # If no arxiv id is found in text, simply return that to the reranker
+    else:
+        return text
+
+
 # Rerank the search
 @app.post("/reranked_search")
 def reranked_search(request: TextRequest) -> list[SearchResult]:
@@ -379,7 +406,9 @@ def reranked_search(request: TextRequest) -> list[SearchResult]:
     search_results = search(request)
 
     # Extract user query from request
-    query = request.text
+    # We can't return plain text, as the user can also
+    # search using the arXiv ID.
+    query = compose_reranking_query(request.text)
 
     # Rerank the search results
     reranked_search_results = rerank_search_results(
