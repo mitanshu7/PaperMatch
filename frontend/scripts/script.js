@@ -17,7 +17,7 @@ const myDropdown = document.getElementById("year_filter")
 const myDiv = document.getElementById("results")
 
 // Search url
-const search_url = "https://api.papermatch.me/search"
+const search_url = "https://api.papermatch.me/reranked_search"
 
 // get current year
 // https://stackoverflow.com/questions/4562587/shortest-way-to-print-current-year-in-a-website
