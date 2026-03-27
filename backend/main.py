@@ -14,6 +14,7 @@ from mixedbread import Mixedbread
 from mixedbread.types.rerank_response import Data
 from pymilvus import MilvusClient
 from schemas import ArxivPaper, SearchResult, TextRequest
+from sentence_transformers import SentenceTransformer
 
 ################################################################################
 # Configuration
@@ -124,27 +125,42 @@ def fetch_arxiv_by_id(arxiv_id: str) -> ArxivPaper:
 
 
 ################################################################################
+# Load the embedding model
+model = SentenceTransformer("mixedbread-ai/mxbai-embed-large-v1")
+
+
+# Function to binarize the float embeddings
+def dense_to_binary(dense_vector: np.ndarray) -> bytes:
+    return np.packbits(np.where(dense_vector >= 0, 1, 0)).tobytes()
 
 
 # Function to embed text using https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1
 @cache
 def embed_text(text: str) -> bytes:
-    # Call the MixedBread.ai API to generate the embedding
-    result = mxbai.embed(
-        model="mixedbread-ai/mxbai-embed-large-v1",
-        input=text,
-        normalized=True,
-        encoding_format="ubinary",
-        dimensions=1024,
-    )
+    try:
+        # Call the MixedBread.ai API to generate the embedding
+        result = mxbai.embed(
+            model="mixedbread-ai/mxbai-embed-large-v1",
+            input=text,
+            normalized=True,
+            encoding_format="ubinary",
+            dimensions=1024,
+        )
 
-    # Extract the embedding from the response
-    embedding = result.data[0].embedding
+        # Extract the embedding from the response
+        embedding = result.data[0].embedding
 
-    # Convert the embedding to a numpy array of uint8 encoding and then to bytes
-    vector_bytes = np.array(embedding, dtype=np.uint8).tobytes()
+        # Convert the embedding to a numpy array of uint8 encoding and then to bytes
+        vector_bytes = np.array(embedding, dtype=np.uint8).tobytes()
 
-    return vector_bytes
+        return vector_bytes
+    except:
+        
+        # Generate the embedding from the locally loaded model
+        embedding = model.encode(text)
+
+        # Binarize and return the bytes for futher search
+        return dense_to_binary(embedding)
 
 
 ################################################################################
