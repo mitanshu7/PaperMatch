@@ -1,6 +1,3 @@
-# TODO
-- [ ] Redis for caching
-
 Run with docker:
 
 ```bash
