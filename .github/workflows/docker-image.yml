@@ -2,17 +2,33 @@ name: Docker Image CI
 
 on:
   push:
-    branches: [ "main" ]
+    branches: ["main"]
   pull_request:
-    branches: [ "main" ]
+    branches: ["main"]
 
 jobs:
-
   build:
-
     runs-on: ubuntu-latest
 
+    permissions:
+      contents: read
+      packages: write
+
     steps:
-    - uses: actions/checkout@v4
-    - name: Build the Docker image
-      run: docker build . --file Dockerfile --tag papermatch-backend:$(date +%s)
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Log in to GitHub Container Registry
+        if: github.event_name == 'push'
+        run: echo "${{ secrets.GH_TOKEN }}" | docker login ghcr.io -u ${{ github.actor }} --password-stdin
+
+      - name: Build Docker image
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/papermatch-backend:latest
+          docker build -t $IMAGE_NAME .
+
+      - name: Push Docker image
+        if: github.event_name == 'push'
+        run: |
+          IMAGE_NAME=ghcr.io/${{ github.repository_owner }}/papermatch-backend:latest
+          docker push $IMAGE_NAME
