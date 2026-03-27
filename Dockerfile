@@ -1,30 +1,53 @@
-FROM python:3.13-slim
+# Copied from https://github.com/astral-sh/uv-docker-example/blob/main/Dockerfile
+# Use a Python image with uv pre-installed
+FROM ghcr.io/astral-sh/uv:python3.13-bookworm-slim
 
-ENV PYTHONDONTWRITEBYTECODE=1 \
-    PYTHONUNBUFFERED=1 \
-    PIP_NO_CACHE_DIR=1
+# Setup a non-root user
+RUN groupadd --system --gid 999 nonroot \
+ && useradd --system --gid 999 --uid 999 --create-home nonroot
 
-# Create app user
-RUN useradd --create-home --shell /bin/bash appuser
-
+# Install the project into `/app`
 WORKDIR /app
 
-# Install dependencies first (better caching)
-COPY requirements.txt .
-RUN pip install --upgrade pip && \
-    pip install --no-cache-dir -r requirements.txt
+# Enable bytecode compilation
+ENV UV_COMPILE_BYTECODE=1
 
-# Copy app code
-COPY backend/ ./backend/
+# Copy from the cache instead of linking since it's a mounted volume
+ENV UV_LINK_MODE=copy
 
-# Fix permissions
-RUN chown -R appuser:appuser /app
+# Omit development dependencies
+ENV UV_NO_DEV=1
 
-# Switch to non-root user
-USER appuser
+# Ensure installed tools can be executed out of the box
+ENV UV_TOOL_BIN_DIR=/usr/local/bin
 
-WORKDIR /app/backend
+# Install the project's dependencies using the lockfile and settings
+RUN --mount=type=cache,target=/root/.cache/uv \
+    --mount=type=bind,source=uv.lock,target=uv.lock \
+    --mount=type=bind,source=pyproject.toml,target=pyproject.toml \
+    uv sync --locked --no-install-project
 
-EXPOSE 8001
+# Then, add the rest of the project source code and install it
+# Installing separately from its dependencies allows optimal layer caching
+COPY . /app/
+RUN --mount=type=cache,target=/root/.cache/uv \
+    uv sync --locked
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4"]
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
+
+# Set cache dir
+ENV HF_HOME=/app/.cache/huggingface
+
+# Pre-download model
+RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('mixedbread-ai/mxbai-embed-large-v1')"
+
+# Reset the entrypoint, don't invoke `uv`
+ENTRYPOINT []
+
+# Use the non-root user to run our application
+USER nonroot
+
+# Run the FastAPI application by default
+# Uses `uv run` to sync dependencies on startup, respecting UV_NO_DEV
+CMD ["uv", "run", "uvicorn", "backend.main:app", "--host", "0.0.0.0", "--port", "8001", "--workers", "4"]

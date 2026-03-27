@@ -1,0 +1,5 @@
+# Exclude the project virtual environment from image builds
+.venv
+
+# Exclude secrets from going into the container
+.env

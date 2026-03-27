@@ -13,7 +13,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from mixedbread import Mixedbread
 from mixedbread.types.rerank_response import Data
 from pymilvus import MilvusClient
-from schemas import ArxivPaper, SearchResult, TextRequest
+from backend.schemas import ArxivPaper, SearchResult, TextRequest
 from sentence_transformers import SentenceTransformer
 
 ################################################################################
