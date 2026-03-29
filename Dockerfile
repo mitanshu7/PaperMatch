@@ -23,23 +23,22 @@ ENV UV_TOOL_BIN_DIR=/usr/local/bin
 
 # Install the project's dependencies using the lockfile and settings
 COPY pyproject.toml uv.lock ./
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked --no-install-project
-
-# Then, add the rest of the project source code and install it
-# Installing separately from its dependencies allows optimal layer caching
-COPY --chown=nonroot . /app/
-RUN --mount=type=cache,target=/root/.cache/uv \
-    uv sync --locked
-
-# Place executables in the environment at the front of the path
-ENV PATH="/app/.venv/bin:$PATH"
+RUN uv sync --locked
 
 # Set cache dir
 ENV HF_HOME=/app/.cache/huggingface
 
-# Pre-download model
-RUN python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('mixedbread-ai/mxbai-embed-large-v1')"
+# Pre-download model using the uv environment
+# Optionally, set the huggingface token during build time to get faster downloads
+RUN --mount=type=secret,id=hf_token,env=HF_TOKEN \
+    uv run python -c "from sentence_transformers import SentenceTransformer; SentenceTransformer('mixedbread-ai/mxbai-embed-large-v1')"
+
+# Then, add the rest of the project source code and install it
+# Installing separately from its dependencies allows optimal layer caching
+COPY --chown=nonroot . /app/
+
+# Place executables in the environment at the front of the path
+ENV PATH="/app/.venv/bin:$PATH"
 
 # Reset the entrypoint, don't invoke `uv`
 ENTRYPOINT []
