@@ -77,7 +77,50 @@ Here is a basic example of how to use the search feature:
 2. **Search by ID:**
    - Input an arXiv ID directly.
    - Retrieve and display the corresponding paper details.
-  
+
+## Building with docker
+0. Clone the repository and enter the directory
+1. To build the image:
+  0. To build for other platforms, checkout: https://docs.docker.com/build/building/multi-platform/#qemu 
+  1. With `HF_TOKEN` and for platform `arm64`:
+    `HF_TOKEN=hf_xxxxxxxxxxxxxx docker build --secret id=hf_token,env=HF_TOKEN --platform linux/arm64 --tag papermatch-backend .`
+  2. Without `HF_TOKEN` and platform `amd64`:
+    `docker build --platform linux/amd64 --tag papermatch-backend .`
+2. Run the image:
+  `docker run -p 8001:8001 --env-file=.env papermatch-backend:latest`
+
+## Run with Podman Quadlets:
+1. Create folder using `mkdir -p ~/.config/containers/systemd/` if it doesn't already exist.
+2. Create a service file using:
+`nano ~/.config/containers/systemd/papermatch_backend.container`
+3. Fill it with the following contents:
+```
+[Container]
+# If you want my prebuilt image
+# Image=docker.io/bluuebunny/papermatch-backend:latest
+# AutoUpdate=registry
+
+# If you want to use locally built image
+Image=localhost/papermatch_backend:latest
+AutoUpdate=local
+
+PublishPort=8001:8001
+
+EnvironmentFile=/home/papermatch/PaperMatch/.env
+
+[Service]
+Restart=always
+
+[Install]
+WantedBy=default.target
+```
+
+replace `papermatch` with your `username`.
+
+4. Issue `systemctl --user daemon-reload` to reload systemd.
+5. Issue `systemctl --user start papermatch_backend.service` to start the app.
+6. Issue `systemctl --user enable  papermatch_backend.service` to enable app at start up.
+
 ## Run at startup (systemd):
 1. Create folder using `mkdir -p ~/.config/systemd/user/` if it doesn't already exist.
 2. Create a service file using:
@@ -118,4 +161,4 @@ For any questions or feedback, please contact [mitanshu.sukhwani@gmail.com](mail
 
 ## Acknowledgements
 
-Mnay thanks to Devan for suggesting amazing fonts, Madhu for giving quality of life improvements, and Kshitij for always being the test subject. 
+Mnay thanks to Devan for suggesting amazing fonts, Madhu for giving quality of life improvements, and Kshitij for always being the test subject.
