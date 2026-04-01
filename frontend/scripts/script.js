@@ -62,7 +62,10 @@ function search(text, filter) {
         myDiv.innerHTML = json.map(result => `
                     <div id="results">
                     <a href="${result.entity.url}" target="_blank">
-                       <h2 id="results_title"> ${result.entity.title} </h2>
+                      <h2 class="hfill" id="results_title">
+                        <span>${result.entity.title}</span>
+                        <span class="${result.distance <= 205 ? 'good' : 'bad'}">●</span>
+                      </h2>
                     </a>
                     <p class="hfill" id="results_authors_year">
                     <b id="results_authors"> ${result.entity.authors} </b> <i id="results_month_year">${result.entity.month} ${result.entity.year}</i>
