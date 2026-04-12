@@ -25,12 +25,6 @@ click==8.3.0
     #   rich-toolkit
     #   typer
     #   uvicorn
-cuda-bindings==13.2.0
-    # via torch
-cuda-pathfinder==1.5.0
-    # via cuda-bindings
-cuda-toolkit==13.0.2
-    # via torch
 distro==1.9.0
     # via mixedbread
 dnspython==2.8.0
@@ -109,45 +103,6 @@ numpy==2.3.3
     #   scipy
     #   sentence-transformers
     #   transformers
-nvidia-cublas==13.1.0.3
-    # via
-    #   cuda-toolkit
-    #   nvidia-cudnn-cu13
-    #   nvidia-cusolver
-nvidia-cuda-cupti==13.0.85
-    # via cuda-toolkit
-nvidia-cuda-nvrtc==13.0.88
-    # via cuda-toolkit
-nvidia-cuda-runtime==13.0.96
-    # via cuda-toolkit
-nvidia-cudnn-cu13==9.19.0.56
-    # via torch
-nvidia-cufft==12.0.0.61
-    # via cuda-toolkit
-nvidia-cufile==1.15.1.6
-    # via cuda-toolkit
-nvidia-curand==10.4.0.35
-    # via cuda-toolkit
-nvidia-cusolver==12.0.4.66
-    # via cuda-toolkit
-nvidia-cusparse==12.6.3.3
-    # via
-    #   cuda-toolkit
-    #   nvidia-cusolver
-nvidia-cusparselt-cu13==0.8.0
-    # via torch
-nvidia-nccl-cu13==2.28.9
-    # via torch
-nvidia-nvjitlink==13.0.88
-    # via
-    #   cuda-toolkit
-    #   nvidia-cufft
-    #   nvidia-cusolver
-    #   nvidia-cusparse
-nvidia-nvshmem-cu13==3.4.5
-    # via torch
-nvidia-nvtx==13.0.85
-    # via cuda-toolkit
 packaging==25.0
     # via
     #   huggingface-hub
@@ -231,8 +186,10 @@ threadpoolctl==3.6.0
     # via scikit-learn
 tokenizers==0.22.2
     # via transformers
-torch==2.11.0
-    # via sentence-transformers
+torch==2.11.0+cpu
+    # via
+    #   papermatch (pyproject.toml)
+    #   sentence-transformers
 tqdm==4.67.1
     # via
     #   huggingface-hub
@@ -240,8 +197,6 @@ tqdm==4.67.1
     #   transformers
 transformers==5.4.0
     # via sentence-transformers
-triton==3.6.0
-    # via torch
 typer==0.19.2
     # via
     #   fastapi-cli
