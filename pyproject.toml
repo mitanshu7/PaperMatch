@@ -7,6 +7,7 @@ requires-python = ">=3.13"
 dependencies = [
     "arxiv>=2.2.0",
     "backoff>=2.2.1",
+    "beautifulsoup4>=4.14.3",
     "fastapi[standard]>=0.118.0",
     "mixedbread>=0.30.0",
     "pymilvus>=2.6.2",
