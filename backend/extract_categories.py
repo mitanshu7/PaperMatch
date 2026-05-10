@@ -28,6 +28,9 @@ for subject in subjects:
     subject_id = subject.get("id")
     subject_name = subject_id.split("_")[-1]
 
+    print("#" * 80)
+    print(subject_name)
+
     # Create an empty list to store the tags
     taxonomy[subject_name] = []
 
@@ -40,8 +43,18 @@ for subject in subjects:
         category = subject_subcategory.text.split(" ")[0]
         taxonomy[subject_name].append(category)
 
+    filter_list = [
+        f'categories LIKE "%{category_code}%"'
+        for category_code in taxonomy[subject_name]
+    ]
 
-print(taxonomy)
+    filter = " OR ".join(filter_list)
+
+    print("#" * 40)
+    print(filter)
+
+
+# print(taxonomy)
 
 with open("backend/arxiv_taxonomy.json", "w") as file:
     json.dump(taxonomy, file, indent=2)
