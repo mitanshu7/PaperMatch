@@ -10,9 +10,6 @@ const dataset_url = "https://datasets-server.huggingface.co/info?dataset=bluuebu
 // Add total papers availabe to search from arXiv
 fetch(dataset_url).then(response => response.json()).then(result => myTextArea.placeholder = `Search ${result.dataset_info.default.splits.train.num_examples.toLocaleString()} arXiv papers`)
 
-// Year filte dropdown menu
-const myDropdown = document.getElementById("year_filter")
-
 // Search results
 const myDiv = document.getElementById("results")
 
@@ -28,10 +25,13 @@ const currentYear = new Date().getFullYear();
 const yearDropdown = document.getElementById("year_filter");
 yearDropdown.innerHTML = `
     <option value="" selected>All years</option>
-    <option value="year == ${currentYear}">This year</option>
-    <option value="year >= ${currentYear - 5}">Last 5 years</option>
-    <option value="year >= ${currentYear - 10}">Last 10 years</option>
+    <option value="(year == ${currentYear})">This year</option>
+    <option value="(year >= ${currentYear - 5})">Last 5 years</option>
+    <option value="(year >= ${currentYear - 10})">Last 10 years</option>
 `;
+
+// Get the category filter dropdown
+const categoryDropdown = document.getElementById("category_filter");
 
 //  Function to perform the search and modify div to render html
 function search(text, filter) {
@@ -107,8 +107,24 @@ function perform_search(event){
   const input_text = myTextArea.value.trim()
   console.log("input_text")
   console.log(input_text)
+
+  const year_filter_value = yearDropdown.options[yearDropdown.selectedIndex].value 
+  console.log("year_filter_value")
+  console.log(year_filter_value)
+  const category_filter_value = categoryDropdown.options[categoryDropdown.selectedIndex].value
+  console.log("category_filter_value")
+  console.log(category_filter_value)
+  input_filter = ""
   
-  const input_filter = myDropdown.options[myDropdown.selectedIndex].value
+  if (year_filter_value && category_filter_value) {
+    input_filter = `${year_filter_value} AND  ${category_filter_value}`
+  } else if (year_filter_value) {
+    input_filter = year_filter_value
+  } else if (category_filter_value) {
+    input_filter = category_filter_value
+  }
+  
+  
   console.log("input_filter")
   console.log(input_filter)
   
