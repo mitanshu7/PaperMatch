@@ -121,6 +121,10 @@ select:focus {
         padding: 12px 6px;
     }
 
+    #category_filter {
+        max-width: 50%;
+    }
+
     select,
     #search_button {
         padding: 5px 5px;
