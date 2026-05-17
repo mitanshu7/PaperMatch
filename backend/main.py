@@ -381,6 +381,13 @@ def serialise_for_reranker(search_results: list[SearchResult]) -> list[dict]:
 
 
 def compose_reranking_query(text: str) -> str:
+    """
+    This function helps maintain the search by arXiv ID and search by text workflow.
+    If there is ID in the text, it first tries to fetch the abstract from DB, otherwise
+    it gets the results from arxiv itself.
+
+    If there is no arXiv ID, then it simply returns the text as is.
+    """
     id_in_text = extract_arxiv_id_from_text(text)
 
     if id_in_text:
