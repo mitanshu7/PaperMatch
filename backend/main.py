@@ -13,8 +13,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from mixedbread import Mixedbread
 from mixedbread.types.rerank_response import Data
 from pymilvus import MilvusClient
-from backend.schemas import ArxivPaper, SearchResult, TextRequest
 from sentence_transformers import SentenceTransformer
+
+from backend.schemas import ArxivPaper, SearchResult, TextRequest
 
 ################################################################################
 # Configuration
@@ -134,62 +135,98 @@ def dense_to_binary(dense_vector: np.ndarray) -> bytes:
     return np.packbits(np.where(dense_vector >= 0, 1, 0)).tobytes()
 
 
+# Function to unpack the bytes created using the dense_to_binary function
+def binary_to_dense(binary_vector: bytes) -> np.ndarray:
+    return np.unpackbits(np.frombuffer(binary_vector, dtype=np.uint8))
+
+
 # Function to embed text using https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1
 @cache
-def embed_text(text: str) -> bytes:
+def embed_text(text: str, binarise: bool = True) -> np.ndarray | bytes:
     try:
+        # TODO: Verify the API results, cannot do it right now since no credits
         # Call the MixedBread.ai API to generate the embedding
         result = mxbai.embed(
             model="mixedbread-ai/mxbai-embed-large-v1",
             input=text,
             normalized=True,
-            encoding_format="ubinary",
+            encoding_format="float",
             dimensions=1024,
         )
 
         # Extract the embedding from the response
         embedding = result.data[0].embedding
 
-        # Convert the embedding to a numpy array of uint8 encoding and then to bytes
-        vector_bytes = np.array(embedding, dtype=np.uint8).tobytes()
+        if binarise:
+            # Convert the embedding to bytes
+            embedding = dense_to_binary(embedding)
 
-        return vector_bytes
+        # Otherwise return float embeddings
+        return embedding
     except:
-        
         # Generate the embedding from the locally loaded model
-        embedding = model.encode(text)
+        embedding = model.encode(
+            text,
+            precision="float32",
+            convert_to_numpy=True,
+        )
 
         # Binarize and return the bytes for futher search
-        return dense_to_binary(embedding)
+        if binarise:
+            # Convert the embedding to bytes
+            embedding = dense_to_binary(embedding)
+
+        # Otherwise return float embeddings
+        return embedding
 
 
 ################################################################################
+def transform_result_vector(result: dict) -> dict:
+    """
+    Function to convert the bytes in the milvus search results to a binary numpy array of uint8 dtype
+    """
+    result["entity"]["vector"] = binary_to_dense(result["vector"]).tolist()
+    return result
+
+
 # Single vector search
 def search_by_vector(
     vector: bytes,
     filter: str = "",
     search_limit: int = SEARCH_LIMIT,
+    return_vector: bool = False,
 ) -> list[SearchResult]:
+
+    output_fields = [
+        "id",
+        "title",
+        "abstract",
+        "authors",
+        "categories",
+        "month",
+        "year",
+        "url",
+    ]
+
+    if return_vector:
+        output_fields = output_fields + ["vector"]
+
     # Request zilliz for the vector search
     result = milvus_client.search(
         collection_name=COLLECTION_NAME,  # Collection to search in
         data=[vector],  # Vector to search for
         limit=search_limit,  # Max. number of search results to return
-        output_fields=[
-            "id",
-            "title",
-            "abstract",
-            "authors",
-            "categories",
-            "month",
-            "year",
-            "url",
-        ],  # Output fields to return
+        output_fields=output_fields,  # Output fields to return
         filter=filter,  # Filter to apply to the search
     )
 
+    if return_vector:
+        results = [transform_result_vector(result) for result in result[0]]
+    else:
+        results = result[0]
+
     search_results = [
-        SearchResult.model_validate(search_result) for search_result in result[0]
+        SearchResult.model_validate(search_result) for search_result in results
     ]
 
     # returns a list of dictionaries with id and distance as keys
@@ -223,6 +260,7 @@ def search_by_text(request: TextRequest) -> list[SearchResult]:
 ################################################################################
 
 
+# TODO: Fix inconsistent inputs. Some functions are taking TextRequest, some are taking values
 # Search by known id
 # The onus is on the user to make sure the id exists
 # Use with similar results feature
@@ -251,6 +289,7 @@ def search_by_known_id(
 ################################################################################
 
 
+# TODO: Fix inconsistent inputs. Some functions are taking TextRequest, some are taking values
 # Search by id. this will first hit the db to get vector
 # else use abstract from site to arxiv
 @app.get("/search_by_id/{arxiv_id}")
@@ -342,7 +381,6 @@ def prettify_rerank_search_results(rerank_results: list[Data]):
     return pretty_data
 
 
-@app.post("/rerank_search_results")
 def rerank_search_results(
     query: str,
     documents: list[dict],
@@ -440,3 +478,93 @@ def reranked_search(request: TextRequest) -> list[SearchResult]:
     )
 
     return reranked_search_results
+
+
+################################################################################
+
+
+def rerank_search_results_yamada(
+    float_query_vector: np.ndarray,
+    binary_search_results: list[SearchResult],
+    top_k: int = SEARCH_LIMIT,
+) -> list[SearchResult]:
+
+    # Normalise the vectors so that the dot products are 
+    # between -1 and 1
+    float_query_vector_normalised = float_query_vector/np.linalg.norm(float_query_vector)
+
+    # Iterate over the search results
+    for search_result in binary_search_results:
+        # Extract the binary vector
+        binary_vector = search_result.entity.vector
+
+        # Normalise the vectors so that the dot products are 
+        # between -1 and 1
+        binary_vector_normalised = binary_vector/np.linalg.norm(binary_vector)
+
+        # Calculate the dot product and then linearly map the answer
+        # from the domain [-1024,1024] to [0,1024]. Enforce int for pydantic model
+        search_result.distance = np.dot(float_query_vector_normalised, binary_vector_normalised)
+
+        # TODO: Fix the hack, delete vector altogether
+        # Empty the binary vector to present the results properly
+        search_result.entity.vector = []
+
+    # Sort the results using the newly calculated dot products
+    # https://stackoverflow.com/questions/613183/how-do-i-sort-a-dictionary-by-value
+    reranked_results = sorted(
+        binary_search_results,
+        key=lambda search_result: search_result.distance,
+        reverse=True
+    )
+
+    # Return the ranked results upto top_k
+    return reranked_results[:top_k]
+
+
+# Rerank the search using Yamada et al. (2021) https://arxiv.org/abs/2106.00882
+@app.post("/reranked_search_yamada")
+def reranked_search_yamada(request: TextRequest) -> list[SearchResult]:
+    """
+    Function to use the reranking trick introduced by Yamada et al.
+    Here, we first retreive `multiplier * top_k` results
+    """
+
+    # Extract arXiv ID from text
+    id_in_text = extract_arxiv_id_from_text(request.text)
+
+    # Do not do any re-ranking if the search is preformed using ID
+    if id_in_text:
+        return search_by_id(
+            id_in_text,
+            request.filter,
+            request.search_limit,
+        )
+
+    # Now that the request only contains english text (and not arXiv ID),
+    # we can generate the float embeddings
+    float_query_vector = np.array(
+        embed_text(request.text, binarise=False),
+        dtype=np.float32,
+    )
+
+    # Convert the float vector to binary to perform similarity search
+    binary_query_vector = dense_to_binary(float_query_vector)
+    # print(f"{binary_query_vector = }")
+
+    # Increase the search limit and perform vector search
+    binary_search_results = search_by_vector(
+        vector=binary_query_vector,
+        filter=request.filter,
+        search_limit=RERANK_INPUT_SEARCH_LIMIT,
+        return_vector=True,
+    )
+
+    # Rerank the results
+    reranked_results = rerank_search_results_yamada(
+        float_query_vector,
+        binary_search_results,
+        request.search_limit,
+    )
+
+    return reranked_results

@@ -23,11 +23,12 @@ class Entity(BaseModel):
     month: str
     year: int
     id: str
+    vector: list | None = None  # The vector field may or may not be present
 
 
 class SearchResult(BaseModel):
     id: str
-    distance: int
+    distance: int | float
     entity: Entity
 
 

@@ -20,7 +20,8 @@ fetch(dataset_url)
 const myDiv = document.getElementById("results");
 
 // Search url
-const search_url = "https://api.papermatch.me/search";
+const search_url = "https://api.papermatch.me/reranked_search_yamada";
+// const search_url = "http://127.0.0.1:1234/reranked_search_yamada";
 
 // get current year
 // https://stackoverflow.com/questions/4562587/shortest-way-to-print-current-year-in-a-website
@@ -71,7 +72,8 @@ function search(text, filter) {
                     <a href="${result.entity.url}" target="_blank">
                       <h2 class="hfill" id="results_title">
                         <span>${result.entity.title}</span>
-                        <span class="${result.distance <= 205 ? "good" : "bad"}">●</span>
+                        <!-- Commenting the following indicator since it does not work on reranked search -->
+                        <!-- <span class="${result.distance <= 205 ? "good" : "bad"}">●</span> -->
                       </h2>
                     </a>
                     <p class="hfill" id="results_authors_year">
