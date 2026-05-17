@@ -161,6 +161,7 @@ def embed_text(text: str, binarise: bool = True) -> np.ndarray | bytes:
             # Convert the embedding to bytes
             embedding = dense_to_binary(embedding)
 
+        # Otherwise return float embeddings
         return embedding
     except:
         # Generate the embedding from the locally loaded model
@@ -170,11 +171,12 @@ def embed_text(text: str, binarise: bool = True) -> np.ndarray | bytes:
             convert_to_numpy=True,
         )
 
+        # Binarize and return the bytes for futher search
         if binarise:
             # Convert the embedding to bytes
             embedding = dense_to_binary(embedding)
 
-        # Binarize and return the bytes for futher search
+        # Otherwise return float embeddings
         return embedding
 
 
@@ -258,6 +260,7 @@ def search_by_text(request: TextRequest) -> list[SearchResult]:
 ################################################################################
 
 
+# TODO: Fix inconsistent inputs. Some functions are taking TextRequest, some are taking values
 # Search by known id
 # The onus is on the user to make sure the id exists
 # Use with similar results feature
@@ -286,6 +289,7 @@ def search_by_known_id(
 ################################################################################
 
 
+# TODO: Fix inconsistent inputs. Some functions are taking TextRequest, some are taking values
 # Search by id. this will first hit the db to get vector
 # else use abstract from site to arxiv
 @app.get("/search_by_id/{arxiv_id}")
@@ -377,7 +381,6 @@ def prettify_rerank_search_results(rerank_results: list[Data]):
     return pretty_data
 
 
-@app.post("/rerank_search_results")
 def rerank_search_results(
     query: str,
     documents: list[dict],
@@ -480,10 +483,88 @@ def reranked_search(request: TextRequest) -> list[SearchResult]:
 ################################################################################
 
 
-# # Rerank the search using Yamada et al. (2021) https://arxiv.org/abs/2106.00882
-# @app.post("/reranked_search_yamada")
-# def reranked_search_yamada(request: TextRequest) -> list[SearchResult]:
-#     """
-#     Function to use the reranking trick introduced by Yamada et al.
-#     Here, we first retreive `multiplier * top_k` results
-#     """
+def rerank_search_results_yamada(
+    float_query_vector: np.ndarray,
+    binary_search_results: list[SearchResult],
+    top_k: int = SEARCH_LIMIT,
+) -> list[SearchResult]:
+
+    # Normalise the vectors so that the dot products are 
+    # between -1 and 1
+    float_query_vector_normalised = float_query_vector/np.linalg.norm(float_query_vector)
+
+    # Iterate over the search results
+    for search_result in binary_search_results:
+        # Extract the binary vector
+        binary_vector = search_result.entity.vector
+
+        # Normalise the vectors so that the dot products are 
+        # between -1 and 1
+        binary_vector_normalised = binary_vector/np.linalg.norm(binary_vector)
+
+        # Calculate the dot product and then linearly map the answer
+        # from the domain [-1024,1024] to [0,1024]. Enforce int for pydantic model
+        search_result.distance = np.dot(float_query_vector_normalised, binary_vector_normalised)
+
+        # TODO: Fix the hack, delete vector altogether
+        # Empty the binary vector to present the results properly
+        search_result.entity.vector = []
+
+    # Sort the results using the newly calculated dot products
+    # https://stackoverflow.com/questions/613183/how-do-i-sort-a-dictionary-by-value
+    reranked_results = sorted(
+        binary_search_results,
+        key=lambda search_result: search_result.distance,
+        reverse=True
+    )
+
+    # Return the ranked results upto top_k
+    return reranked_results[:top_k]
+
+
+# Rerank the search using Yamada et al. (2021) https://arxiv.org/abs/2106.00882
+@app.post("/reranked_search_yamada")
+def reranked_search_yamada(request: TextRequest) -> list[SearchResult]:
+    """
+    Function to use the reranking trick introduced by Yamada et al.
+    Here, we first retreive `multiplier * top_k` results
+    """
+
+    # Extract arXiv ID from text
+    id_in_text = extract_arxiv_id_from_text(request.text)
+
+    # Do not do any re-ranking if the search is preformed using ID
+    if id_in_text:
+        return search_by_id(
+            id_in_text,
+            request.filter,
+            request.search_limit,
+        )
+
+    # Now that the request only contains english text (and not arXiv ID),
+    # we can generate the float embeddings
+    float_query_vector = np.array(
+        embed_text(request.text, binarise=False),
+        dtype=np.float32,
+    )
+
+    # Convert the float vector to binary to perform similarity search
+    binary_query_vector = dense_to_binary(float_query_vector)
+    # print(f"{binary_query_vector = }")
+
+    # Increase the search limit and perform vector search
+    binary_search_results = search_by_vector(
+        vector=binary_query_vector,
+        filter=request.filter,
+        search_limit=RERANK_INPUT_SEARCH_LIMIT,
+        return_vector=True,
+    )
+
+    # Rerank the results
+    reranked_results = rerank_search_results_yamada(
+        float_query_vector,
+        binary_search_results,
+        request.search_limit,
+    )
+
+    return reranked_results
