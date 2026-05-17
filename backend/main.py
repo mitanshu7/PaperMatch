@@ -13,8 +13,9 @@ from fastapi.middleware.cors import CORSMiddleware
 from mixedbread import Mixedbread
 from mixedbread.types.rerank_response import Data
 from pymilvus import MilvusClient
-from backend.schemas import ArxivPaper, SearchResult, TextRequest
 from sentence_transformers import SentenceTransformer
+
+from backend.schemas import ArxivPaper, SearchResult, TextRequest
 
 ################################################################################
 # Configuration
@@ -134,62 +135,96 @@ def dense_to_binary(dense_vector: np.ndarray) -> bytes:
     return np.packbits(np.where(dense_vector >= 0, 1, 0)).tobytes()
 
 
+# Function to unpack the bytes created using the dense_to_binary function
+def binary_to_dense(binary_vector: bytes) -> np.ndarray:
+    return np.unpackbits(np.frombuffer(binary_vector, dtype=np.uint8))
+
+
 # Function to embed text using https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1
 @cache
-def embed_text(text: str) -> bytes:
+def embed_text(text: str, binarise: bool = True) -> np.ndarray | bytes:
     try:
+        # TODO: Verify the API results, cannot do it right now since no credits
         # Call the MixedBread.ai API to generate the embedding
         result = mxbai.embed(
             model="mixedbread-ai/mxbai-embed-large-v1",
             input=text,
             normalized=True,
-            encoding_format="ubinary",
+            encoding_format="float",
             dimensions=1024,
         )
 
         # Extract the embedding from the response
         embedding = result.data[0].embedding
 
-        # Convert the embedding to a numpy array of uint8 encoding and then to bytes
-        vector_bytes = np.array(embedding, dtype=np.uint8).tobytes()
+        if binarise:
+            # Convert the embedding to bytes
+            embedding = dense_to_binary(embedding)
 
-        return vector_bytes
+        return embedding
     except:
-        
         # Generate the embedding from the locally loaded model
-        embedding = model.encode(text)
+        embedding = model.encode(
+            text,
+            precision="float32",
+            convert_to_numpy=True,
+        )
+
+        if binarise:
+            # Convert the embedding to bytes
+            embedding = dense_to_binary(embedding)
 
         # Binarize and return the bytes for futher search
-        return dense_to_binary(embedding)
+        return embedding
 
 
 ################################################################################
+def transform_result_vector(result: dict) -> dict:
+    """
+    Function to convert the bytes in the milvus search results to a binary numpy array of uint8 dtype
+    """
+    result["entity"]["vector"] = binary_to_dense(result["vector"]).tolist()
+    return result
+
+
 # Single vector search
 def search_by_vector(
     vector: bytes,
     filter: str = "",
     search_limit: int = SEARCH_LIMIT,
+    return_vector: bool = False,
 ) -> list[SearchResult]:
+
+    output_fields = [
+        "id",
+        "title",
+        "abstract",
+        "authors",
+        "categories",
+        "month",
+        "year",
+        "url",
+    ]
+
+    if return_vector:
+        output_fields = output_fields + ["vector"]
+
     # Request zilliz for the vector search
     result = milvus_client.search(
         collection_name=COLLECTION_NAME,  # Collection to search in
         data=[vector],  # Vector to search for
         limit=search_limit,  # Max. number of search results to return
-        output_fields=[
-            "id",
-            "title",
-            "abstract",
-            "authors",
-            "categories",
-            "month",
-            "year",
-            "url",
-        ],  # Output fields to return
+        output_fields=output_fields,  # Output fields to return
         filter=filter,  # Filter to apply to the search
     )
 
+    if return_vector:
+        results = [transform_result_vector(result) for result in result[0]]
+    else:
+        results = result[0]
+
     search_results = [
-        SearchResult.model_validate(search_result) for search_result in result[0]
+        SearchResult.model_validate(search_result) for search_result in results
     ]
 
     # returns a list of dictionaries with id and distance as keys
@@ -440,3 +475,15 @@ def reranked_search(request: TextRequest) -> list[SearchResult]:
     )
 
     return reranked_search_results
+
+
+################################################################################
+
+
+# # Rerank the search using Yamada et al. (2021) https://arxiv.org/abs/2106.00882
+# @app.post("/reranked_search_yamada")
+# def reranked_search_yamada(request: TextRequest) -> list[SearchResult]:
+#     """
+#     Function to use the reranking trick introduced by Yamada et al.
+#     Here, we first retreive `multiplier * top_k` results
+#     """
