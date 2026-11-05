@@ -152,6 +152,7 @@ def embed_text(text: str, binarise: bool = True) -> np.ndarray | bytes:
             normalized=True,
             encoding_format="float",
             dimensions=1024,
+            prompt="Represent this sentence for searching relevant passages: ",
         )
 
         # Extract the embedding from the response
@@ -169,6 +170,8 @@ def embed_text(text: str, binarise: bool = True) -> np.ndarray | bytes:
             text,
             precision="float32",
             convert_to_numpy=True,
+            prompt_name="query",
+            normalize_embeddings=True,
         )
 
         # Binarize and return the bytes for futher search
@@ -489,22 +492,27 @@ def rerank_search_results_yamada(
     top_k: int = SEARCH_LIMIT,
 ) -> list[SearchResult]:
 
-    # Normalise the vectors so that the dot products are 
+    # Normalise the vectors so that the dot products are
     # between -1 and 1
-    float_query_vector_normalised = float_query_vector/np.linalg.norm(float_query_vector)
+    # https://github.com/mixedbread-ai/binary-embeddings/blob/main/mxbai_binary_quantization.ipynb
+    float_query_vector_normalised = float_query_vector / np.linalg.norm(
+        float_query_vector
+    )
 
     # Iterate over the search results
     for search_result in binary_search_results:
         # Extract the binary vector
         binary_vector = search_result.entity.vector
 
-        # Normalise the vectors so that the dot products are 
+        # Normalise the vectors so that the dot products are
         # between -1 and 1
-        binary_vector_normalised = binary_vector/np.linalg.norm(binary_vector)
+        binary_vector_normalised = binary_vector / np.linalg.norm(binary_vector)
 
         # Calculate the dot product and then linearly map the answer
         # from the domain [-1024,1024] to [0,1024]. Enforce int for pydantic model
-        search_result.distance = np.dot(float_query_vector_normalised, binary_vector_normalised)
+        search_result.distance = np.dot(
+            float_query_vector_normalised, binary_vector_normalised
+        )
 
         # TODO: Fix the hack, delete vector altogether
         # Empty the binary vector to present the results properly
@@ -515,7 +523,7 @@ def rerank_search_results_yamada(
     reranked_results = sorted(
         binary_search_results,
         key=lambda search_result: search_result.distance,
-        reverse=True
+        reverse=True,
     )
 
     # Return the ranked results upto top_k
@@ -542,7 +550,8 @@ def reranked_search_yamada(request: TextRequest) -> list[SearchResult]:
         )
 
     # Now that the request only contains english text (and not arXiv ID),
-    # we can generate the float embeddings
+    # we can generate the float embeddings. Prepend a query prompt for the model
+    # to generate better embeddings. https://huggingface.co/mixedbread-ai/mxbai-embed-large-v1
     float_query_vector = np.array(
         embed_text(request.text, binarise=False),
         dtype=np.float32,
